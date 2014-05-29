@@ -655,14 +655,14 @@ void board_register_reboot_notifier(void);
 void __init tenderloin_usb_init(void)
 {
 #ifdef CONFIG_MDMGPIO
-        platform_device_register(&mdmgpio_device);
+		platform_device_register(&mdmgpio_device);
 #endif
 #ifdef CONFIG_USB_EHCI_MSM_72K
-        msm_add_host(0, &msm_usb_host_pdata);
+		msm_add_host(0, &msm_usb_host_pdata);
 #endif
 #if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
 	if (boardtype_is_3g()) {
-                board_register_reboot_notifier();
+		board_register_reboot_notifier();
 		msm8x60_cfg_isp1763();
 		isp1763_modem_poweron(1);
 	}
