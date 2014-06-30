@@ -28,7 +28,7 @@
 /*
  * Version Information
  */
-#define DRIVER_VERSION "v0.03"
+#define DRIVER_VERSION "v0.03-mbm"
 #define DRIVER_AUTHOR "Oliver Neukum"
 #define DRIVER_DESC "USB Abstract Control Model driver for USB WCM Device Management"
 
@@ -575,6 +575,10 @@ static unsigned int wdm_poll(struct file *file, struct poll_table_struct *wait)
 	unsigned int mask = 0;
 
 	spin_lock_irqsave(&desc->iuspin, flags);
+
+	/* MBM, fixes Select() */
+	poll_wait(file, &desc->wait, wait);
+
 	if (test_bit(WDM_DISCONNECTING, &desc->flags)) {
 		mask = POLLHUP | POLLERR;
 		spin_unlock_irqrestore(&desc->iuspin, flags);
@@ -587,8 +591,6 @@ static unsigned int wdm_poll(struct file *file, struct poll_table_struct *wait)
 	if (!test_bit(WDM_IN_USE, &desc->flags))
 		mask |= POLLOUT | POLLWRNORM;
 	spin_unlock_irqrestore(&desc->iuspin, flags);
-
-	poll_wait(file, &desc->wait, wait);
 
 desc_out:
 	return mask;
@@ -1047,7 +1049,7 @@ static int wdm_post_reset(struct usb_interface *intf)
 	rv = recover_from_urb_loss(desc);
 	mutex_unlock(&desc->wlock);
 	mutex_unlock(&desc->rlock);
-	return 0;
+	return rv;
 }
 
 static struct usb_driver wdm_driver = {
