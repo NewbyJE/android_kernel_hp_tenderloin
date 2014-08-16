@@ -575,14 +575,13 @@ phci_mem_cleanup(void)
 #define	qha_free(c,x)			kfree(x)
 #define	qha_cache			0
 
-
 #ifdef CONFIG_ISO_SUPPORT
 /*memory constants*/
 #define BLK_128_	2
 #define BLK_256_	3
 #define BLK_1024_	1
 #define BLK_2048_	9
-#define BLK_4096_	9 //3
+#define BLK_4096_	0 //3
 #define BLK_8196_	0 //1
 #define BLK_TOTAL	(BLK_128_+BLK_256_ + BLK_1024_ +BLK_2048_+ BLK_4096_+BLK_8196_)
 

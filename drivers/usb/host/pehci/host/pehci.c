@@ -4497,6 +4497,7 @@ pehci_hcd_start(struct usb_hcd *usb_hcd)
 	mb();
 	isp1763_reg_write16(pehci_hcd->dev, pehci_hcd->regs.scratch, 0x3344);
 	ndelay(100);
+
 	ul_scratchval =
 		isp1763_reg_read16(pehci_hcd->dev, pehci_hcd->regs.scratch,
 				   ul_scratchval);
