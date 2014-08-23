@@ -25,6 +25,8 @@
 #include <mach/iommu_domains.h>
 #include <mach/msm_rtb.h>
 #include <mach/msm_cache_dump.h>
+#include <sound/msm-dai-q6.h>
+#include <sound/apr_audio.h>
 
 #include "devices.h"
 #include "rpm_log.h"
@@ -63,11 +65,18 @@ static struct resource msm8930_resources_pccntr[] = {
 	},
 };
 
-struct platform_device msm8930_pc_cntr = {
-	.name		= "pc-cntr",
+static struct msm_pm_init_data_type msm_pm_data = {
+	.retention_calls_tz = true,
+};
+
+struct platform_device msm8930_pm_8x60 = {
+	.name		= "pm-8x60",
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(msm8930_resources_pccntr),
 	.resource	= msm8930_resources_pccntr,
+	.dev = {
+		.platform_data = &msm_pm_data,
+	},
 };
 
 struct msm_rpm_platform_data msm8930_rpm_data __initdata = {
@@ -1325,6 +1334,16 @@ struct platform_device msm8930_iommu_domain_device = {
 	.dev = {
 		.platform_data = &msm8930_iommu_domain_pdata,
 	}
+};
+
+struct platform_device apq_cpudai_pri_i2s_rx = {
+	.name	= "msm-dai-q6",
+	.id	= 0,
+};
+
+struct platform_device apq_cpudai_pri_i2s_tx = {
+	.name	= "msm-dai-q6",
+	.id	= 1,
 };
 
 struct msm_rtb_platform_data msm8930_rtb_pdata = {

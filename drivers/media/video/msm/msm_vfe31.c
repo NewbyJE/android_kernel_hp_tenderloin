@@ -21,7 +21,11 @@
 #include <linux/slab.h>
 #include <linux/io.h>
 #include <mach/irqs.h>
+#ifdef CONFIG_MACH_TENDERLOIN
+#include <mach/camera-tenderloin.h>
+#else
 #include <mach/camera.h>
+#endif
 //#include <mach/msm_reqs.h>
 #include <asm/atomic.h>
 

@@ -575,6 +575,7 @@ phci_mem_cleanup(void)
 #define	qha_free(c,x)			kfree(x)
 #define	qha_cache			0
 
+
 #ifdef CONFIG_ISO_SUPPORT
 /*memory constants*/
 #define BLK_128_	2

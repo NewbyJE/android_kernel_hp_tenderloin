@@ -14,10 +14,6 @@
  *
  */
 
-#ifdef CONFIG_MSM8X60_AUDIO_1X
-#include <linux/msm_audio_8X60.h>
-#endif
-
 #ifndef __LINUX_MSM_AUDIO_H
 #define __LINUX_MSM_AUDIO_H
 

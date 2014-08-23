@@ -35,8 +35,13 @@
 #include <linux/uaccess.h>
 #include <linux/android_pmem.h>
 #include <linux/poll.h>
+#ifdef CONFIG_MACH_TENDERLOIN
+#include <media/msm_camera-tenderloin.h>
+#include <mach/camera-tenderloin.h>
+#else
 #include <media/msm_camera.h>
 #include <mach/camera.h>
+#endif
 #include <linux/syscalls.h>
 #include <linux/hrtimer.h>
 #include <linux/ion.h>
@@ -1051,7 +1056,6 @@ static int msm_divert_frame(struct msm_sync *sync,
 		return rc;
 	}
 
-        memset(&(buf.fmain), 0, sizeof(struct msm_frame));
 	buf.fmain.buffer = (unsigned long)pinfo.vaddr;
 	buf.fmain.y_off = pinfo.y_off;
 	buf.fmain.cbcr_off = pinfo.cbcr_off;

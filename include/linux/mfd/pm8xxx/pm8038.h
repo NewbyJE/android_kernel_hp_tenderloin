@@ -28,7 +28,7 @@
 #include <linux/mfd/pm8xxx/misc.h>
 #include <linux/regulator/pm8xxx-regulator.h>
 #include <linux/mfd/pm8xxx/pm8xxx-adc.h>
-#ifdef CONFIG_HTC_BATT_8960
+#ifdef CONFIG_MACH_HTC
 #include <linux/mfd/pm8xxx/pm8921-charger-htc.h>
 #include <linux/mfd/pm8xxx/pm8921-bms-htc.h>
 #else

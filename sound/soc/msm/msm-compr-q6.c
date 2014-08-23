@@ -80,7 +80,8 @@ static struct snd_pcm_hardware msm_compr_hardware_playback = {
 				SNDRV_PCM_INFO_MMAP_VALID |
 				SNDRV_PCM_INFO_INTERLEAVED |
 				SNDRV_PCM_INFO_PAUSE | SNDRV_PCM_INFO_RESUME),
-	.formats =	      SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE,
+	.formats =		SNDRV_PCM_FMTBIT_S16_LE |
+				SNDRV_PCM_FMTBIT_S24_LE,
 	.rates =		SNDRV_PCM_RATE_8000_48000 | SNDRV_PCM_RATE_KNOT,
 	.rate_min =	     8000,
 	.rate_max =	     48000,
@@ -904,7 +905,11 @@ static int msm_compr_hw_params(struct snd_pcm_substream *substream,
 	struct snd_dma_buffer *dma_buf = &substream->dma_buffer;
 	struct audio_buffer *buf;
 	int dir, ret;
+#if defined (CONFIG_MACH_M7_UL) || defined(CONFIG_MACH_M4_UL)
+	short bit_width = 24;
+#else
 	short bit_width = 16;
+#endif
 	struct asm_softpause_params softpause = {
 		.enable = SOFT_PAUSE_ENABLE,
 		.period = SOFT_PAUSE_PERIOD,
@@ -918,17 +923,13 @@ static int msm_compr_hw_params(struct snd_pcm_substream *substream,
 	};
 
 	pr_debug("%s\n", __func__);
-	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK )
+	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
 		dir = IN;
 	else
 		dir = OUT;
 
 	if (runtime->format == SNDRV_PCM_FORMAT_S24_LE)
 		bit_width = 24;
-
-#ifdef CONFIG_MACH_M7_UL
-        bit_width = 24;
-#endif
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
 		switch (compr->info.codec_param.codec.id) {

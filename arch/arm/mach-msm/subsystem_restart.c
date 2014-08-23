@@ -114,7 +114,7 @@ DEFINE_SINGLE_RESTART_ORDER(orders_8x60_all, _order_8x60_all);
 static const char * const _order_8x60_modems[] = {"external_modem", "modem"};
 DEFINE_SINGLE_RESTART_ORDER(orders_8x60_modems, _order_8x60_modems);
 
-#ifdef CONFIG_MACH_HTC
+#if defined(CONFIG_MACH_HTC) && !defined(CONFIG_ARCH_MSM8X60)
 /* MSM 8960 restart ordering info */
 static const char * const order_8960[] = {"modem", "lpass"};
 
@@ -629,7 +629,7 @@ static int __init ssr_init_soc_restart_orders(void)
 		n_restart_orders = ARRAY_SIZE(orders_8x60_all);
 	}
 
-#ifdef CONFIG_MACH_HTC
+#if defined(CONFIG_MACH_HTC) && !defined(CONFIG_ARCH_MSM8X60)
 	restart_orders = restart_orders_8960;
 	n_restart_orders = ARRAY_SIZE(restart_orders_8960);
 #else
@@ -647,10 +647,6 @@ static int __init ssr_init_soc_restart_orders(void)
 	for (i = 0; i < n_restart_orders; i++) {
 		mutex_init(&restart_orders[i]->powerup_lock);
 		mutex_init(&restart_orders[i]->shutdown_lock);
-	}
-
-	if (restart_orders == NULL || n_restart_orders < 1) {
-		WARN_ON(1);
 	}
 
 	return 0;

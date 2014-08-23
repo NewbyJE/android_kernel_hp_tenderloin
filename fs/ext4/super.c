@@ -43,9 +43,6 @@
 
 #include <linux/kthread.h>
 #include <linux/freezer.h>
-#ifdef CONFIG_EXT4_E2FSCK_RECOVER
-#include <linux/reboot.h>
-#endif
 
 #include "ext4.h"
 #include "ext4_extents.h"
@@ -489,11 +486,6 @@ static void ext4_handle_error(struct super_block *sb)
 	if (test_opt(sb, ERRORS_PANIC))
 		panic("EXT4-fs (device %s): panic forced after error\n",
 			sb->s_id);
-
-#ifdef CONFIG_EXT4_E2FSCK_RECOVER
-	if (test_opt(sb, ERRORS_RO))
-		ext4_e2fsck(sb);
-#endif
 }
 
 void __ext4_error(struct super_block *sb, const char *function,
@@ -512,42 +504,6 @@ void __ext4_error(struct super_block *sb, const char *function,
 
 	ext4_handle_error(sb);
 }
-
-#ifdef CONFIG_EXT4_E2FSCK_RECOVER
-static void ext4_reboot(struct work_struct *work)
-{
-	printk(KERN_ERR "%s: reboot to run e2fsck\n", __func__);
-	kernel_restart("oem-22");
-}
-
-void ext4_e2fsck(struct super_block *sb)
-{
-	static int reboot;
-	struct workqueue_struct *wq;
-	struct ext4_sb_info *sb_info;
-	if (reboot)
-		return;
-	printk(KERN_ERR "%s\n", __func__);
-	reboot = 1;
-	sb_info = EXT4_SB(sb);
-	if (!sb_info) {
-		printk(KERN_ERR "%s: no sb_info\n", __func__);
-		reboot = 0;
-		return;
-	}
-	sb_info->recover_wq = create_workqueue("ext4-recover");
-	if (!sb_info->recover_wq) {
-		printk(KERN_ERR "EXT4-fs: failed to create recover workqueue\n");
-		reboot = 0;
-		return;
-	}
-
-	INIT_WORK(&sb_info->reboot_work, ext4_reboot);
-	wq = sb_info->recover_wq;
-
-	queue_work(wq, &sb_info->reboot_work);
-}
-#endif
 
 void ext4_error_inode(struct inode *inode, const char *function,
 		      unsigned int line, ext4_fsblk_t block,
@@ -2633,11 +2589,10 @@ static void print_daily_error_info(unsigned long arg)
 	es = sbi->s_es;
 
 	if (es->s_error_count)
-		/* fsck newer than v1.41.13 is needed to clean this condition. */
-		ext4_msg(sb, KERN_NOTICE, "error count since last fsck: %u",
+		ext4_msg(sb, KERN_NOTICE, "error count: %u",
 			 le32_to_cpu(es->s_error_count));
 	if (es->s_first_error_time) {
-		printk(KERN_NOTICE "EXT4-fs (%s): initial error at time %u: %.*s:%d",
+		printk(KERN_NOTICE "EXT4-fs (%s): initial error at %u: %.*s:%d",
 		       sb->s_id, le32_to_cpu(es->s_first_error_time),
 		       (int) sizeof(es->s_first_error_func),
 		       es->s_first_error_func,
@@ -2651,7 +2606,7 @@ static void print_daily_error_info(unsigned long arg)
 		printk("\n");
 	}
 	if (es->s_last_error_time) {
-		printk(KERN_NOTICE "EXT4-fs (%s): last error at time %u: %.*s:%d",
+		printk(KERN_NOTICE "EXT4-fs (%s): last error at %u: %.*s:%d",
 		       sb->s_id, le32_to_cpu(es->s_last_error_time),
 		       (int) sizeof(es->s_last_error_func),
 		       es->s_last_error_func,
@@ -3415,22 +3370,16 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
 	for (i = 0; i < 4; i++)
 		sbi->s_hash_seed[i] = le32_to_cpu(es->s_hash_seed[i]);
 	sbi->s_def_hash_version = es->s_def_hash_version;
-	if (EXT4_HAS_COMPAT_FEATURE(sb, EXT4_FEATURE_COMPAT_DIR_INDEX)) {
-		i = le32_to_cpu(es->s_flags);
-		if (i & EXT2_FLAGS_UNSIGNED_HASH)
-			sbi->s_hash_unsigned = 3;
-		else if ((i & EXT2_FLAGS_SIGNED_HASH) == 0) {
+	i = le32_to_cpu(es->s_flags);
+	if (i & EXT2_FLAGS_UNSIGNED_HASH)
+		sbi->s_hash_unsigned = 3;
+	else if ((i & EXT2_FLAGS_SIGNED_HASH) == 0) {
 #ifdef __CHAR_UNSIGNED__
-			if (!(sb->s_flags & MS_RDONLY))
-				es->s_flags |=
-					cpu_to_le32(EXT2_FLAGS_UNSIGNED_HASH);
-			sbi->s_hash_unsigned = 3;
+		es->s_flags |= cpu_to_le32(EXT2_FLAGS_UNSIGNED_HASH);
+		sbi->s_hash_unsigned = 3;
 #else
-			if (!(sb->s_flags & MS_RDONLY))
-				es->s_flags |=
-					cpu_to_le32(EXT2_FLAGS_SIGNED_HASH);
+		es->s_flags |= cpu_to_le32(EXT2_FLAGS_SIGNED_HASH);
 #endif
-		}
 	}
 
 	/* Handle clustersize */

@@ -197,13 +197,12 @@ static void check_vbus_in(struct work_struct *w)
 	struct cable_detect_info *pInfo = container_of(
 			w, struct cable_detect_info, vbus_detect_work.work);
 
-#ifdef CONFIG_MFD_PM8921_CORE
-	level = pm8921_is_pwr_src_plugged_in();
-	vbus_in = level;
+#ifdef CONFIG_ARCH_MSM8X60
+	level = gpio_get_value(pInfo->vbus_mpp_gpio) ? 0 : 1;
 #else
-	level = gpio_get_value(pInfo->vbus_mpp_gpio);
-	vbus_in = (level) ? 0:1;
+	level = pm8921_is_pwr_src_plugged_in();
 #endif
+	vbus_in = level;
 	CABLE_INFO("%s: vbus = %d, vbus_in = %d\n", __func__, vbus, vbus_in);
 
 #ifdef CONFIG_RESET_BY_CABLE_IN
@@ -249,6 +248,10 @@ static void check_vbus_in(struct work_struct *w)
 			}
 		}
 	}
+        if (pInfo->vbus_mpp_irq) {
+          enable_irq(pInfo->vbus_mpp_irq);
+          CABLE_INFO("%s: Enable vbus irq ++\n", __func__);
+        }
 	wake_unlock(&pInfo->vbus_wlock);
 }
 
@@ -715,14 +718,14 @@ static ssize_t vbus_status_show(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
 	int level, vbus_in;
+#ifdef CONFIG_ARCH_MSM8X60
+	struct cable_detect_info *pInfo = &the_cable_info;
 
-#ifdef CONFIG_MFD_PM8921_CORE
-	level = pm8921_is_pwr_src_plugged_in();
-	vbus_in = level;
+	level = gpio_get_value(pInfo->vbus_mpp_gpio) ? 0 : 1;
 #else
 	level = pm8921_is_usb_chg_plugged_in();
-	vbus_in = level;
 #endif
+	vbus_in = level;
 	CABLE_INFO("%s: vbus state = %d\n", __func__, vbus_in);
 	return sprintf(buf, "%d\n", vbus_in);
 }
@@ -858,6 +861,12 @@ static int cd_pmic_request_irq(unsigned int gpio, unsigned int *irq,
 	return 1;
 }
 
+static irqreturn_t vbus_irq_handler(int irq, void *dev_id)
+{
+        disable_irq_nosync(irq);
+        return cable_detection_vbus_irq_handler();
+}
+
 static int cable_detect_probe(struct platform_device *pdev)
 {
 	int ret;
@@ -908,6 +917,18 @@ static int cable_detect_probe(struct platform_device *pdev)
 		if (pdata->vbus_mpp_config)
 			pdata->vbus_mpp_config();
 
+                if (pdata->vbus_mpp_gpio) {
+                  gpio_request(pdata->vbus_mpp_gpio, "vbus_cable_detect");
+                  CABLE_INFO("vbus_mpp_gpio: %d\n", pdata->vbus_mpp_gpio);
+                }
+                if (pdata->vbus_mpp_irq) {
+                  set_irq_flags(pdata->vbus_mpp_irq, IRQF_VALID | IRQF_NOAUTOEN);
+                  ret = request_any_context_irq(
+                                                pdata->vbus_mpp_irq, vbus_irq_handler,
+                                                IRQF_TRIGGER_FALLING|IRQF_TRIGGER_RISING,
+                                                "vbus_irq", pdata);
+                  enable_irq_wake(pdata->vbus_mpp_irq);
+                }
 		wake_lock_init(&pInfo->vbus_wlock,
 			WAKE_LOCK_SUSPEND, "vbus_lock");
 
@@ -954,6 +975,9 @@ static int cable_detect_probe(struct platform_device *pdev)
 
 	usb_id_detect_init(pInfo);
 #endif
+
+	queue_delayed_work(pInfo->cable_detect_wq,
+				&pInfo->vbus_detect_work, HZ/2);
 
 	return 0;
 }

@@ -116,22 +116,12 @@ static int isp1763_setup_gpio(int enable)
 						__func__, ISP1763_INT_GPIO);
 			return status;
 		}
-		else
-		{
-			pr_info("%s:Successfully requested INT_GPIO %d\n",
-					__func__, ISP1763_INT_GPIO);
-		}
 		status = gpio_request(ISP1763_RST_GPIO, "isp1763_usb");
 		if (status) {
 			pr_err("%s:Failed to request GPIO %d\n",
 						__func__, ISP1763_RST_GPIO);
 			gpio_free(ISP1763_INT_GPIO);
 			return status;
-		}
-		else
-		{
-		pr_info("%s:Successfully requested RST_GPIO %d\n",
-						__func__, ISP1763_RST_GPIO);
 		}
 		gpio_requested = 1;
 	}
@@ -147,7 +137,7 @@ static int isp1763_setup_gpio(int enable)
 			pr_err("%s:Failed to configure GPIO %d\n",
 					__func__, ISP1763_RST_GPIO);
 		}
-		pr_info("\nISP GPIO configuration done\n");
+		pr_debug("\nISP GPIO configuration done\n");
 		return status;
 	}
 	else
@@ -183,23 +173,21 @@ static struct platform_device isp1763_device = {
 static int isp1763_modem_gpio_init(int on)
 {
 	int rc;
-	static int gpio_requested = 0;
+	static int gpio_requested=0;
 
 	int gpio_pwr_3g_en = pin_table[TENDERLOIN_GPIO_3G_3V3_EN];
-	pr_info("%s:pin table = %d\n", __func__, gpio_pwr_3g_en);
-	
+
 	if (!gpio_requested)
 	{
-		gpio_tlmm_config(GPIO_CFG(gpio_pwr_3g_en, 0,GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),GPIO_CFG_ENABLE);
+		gpio_tlmm_config(GPIO_CFG(gpio_pwr_3g_en, 0,GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL,GPIO_CFG_2MA),GPIO_CFG_ENABLE);
 		rc = gpio_request(gpio_pwr_3g_en, "VDD_3V3_EN");
 		if (rc < 0) {
 			pr_err("%s: VDD_3V3_EN gpio %d request failed\n", __func__, gpio_pwr_3g_en);
 		}
 		else
 		{
-			pr_info("%s: VDD_3V3_EN gpio %d statu: %d\n", __func__, gpio_pwr_3g_en, gpio_get_value(gpio_pwr_3g_en));
+			pr_debug("%s: VDD_3V3_EN gpio %d statu: %d\n", __func__, gpio_pwr_3g_en, gpio_get_value(gpio_pwr_3g_en));
 		}
-
 		gpio_direction_output(gpio_pwr_3g_en, 0);
 		rc = gpio_request(GPIO_3G_DISABLE_N, "3G_DISABLE_N");
 		if (rc < 0) {
@@ -207,16 +195,17 @@ static int isp1763_modem_gpio_init(int on)
 		}
 		else
 		{
-			pr_info( "%s: GPIO_3G_DISABLE_N gpio %d status: %d\n", __func__, GPIO_3G_DISABLE_N, gpio_get_value(GPIO_3G_DISABLE_N));
+			pr_debug( "%s: GPIO_3G_DISABLE_N gpio %d status: %d\n", __func__, GPIO_3G_DISABLE_N, gpio_get_value(GPIO_3G_DISABLE_N));
 		}
-
 		gpio_direction_output(GPIO_3G_DISABLE_N, 0);
 
 		gpio_tlmm_config(GPIO_CFG(GPIO_3G_WAKE_N, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
+
 		rc = gpio_request(GPIO_3G_WAKE_N, "3G_WAKE");
 		if (rc < 0) {
 			pr_err("%s: GPIO_3G_WAKE_N gpio %d request failed\n", __func__, GPIO_3G_WAKE_N);
 		}
+
 		gpio_direction_input(GPIO_3G_WAKE_N);
 
 		gpio_tlmm_config(GPIO_CFG(GPIO_3G_UIM_CD_N, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
@@ -225,7 +214,6 @@ static int isp1763_modem_gpio_init(int on)
 			printk(KERN_ERR "%s: GPIO_3G_UIM_CD_N gpio %d request failed\n", __func__, GPIO_3G_UIM_CD_N);
 		}
 		gpio_direction_input(GPIO_3G_UIM_CD_N);
-
 		rc = gpio_request(ISP1763_DACK_GPIO, "ISP1763A_DACK");
 		if (rc < 0) {
 			pr_err("%s: ISP1763A_DACK gpio %d request failed\n", __func__, ISP1763_DACK_GPIO);
@@ -317,7 +305,6 @@ out_free_resources:
 	return ret;
 }
 #endif /* CONFIG_USB_PEHCI_HCD */
-
 #ifdef CONFIG_MDMGPIO
 static int set_gpio_value(int gpionum, int value)
 {
@@ -654,7 +641,6 @@ static int msm_hsusb_ldo_enable(int on)
 static void msm_hsusb_vbus_power(unsigned phy_info, int on)
 {
 	static struct regulator *votg_5v_switch;
-	static struct regulator *ext_5v_reg;
 	static int vbus_is_on;
 
 	/* If VBUS is already on (or off), do nothing. */
@@ -669,20 +655,8 @@ static void msm_hsusb_vbus_power(unsigned phy_info, int on)
 			return;
 		}
 	}
-	if (!ext_5v_reg) {
-		ext_5v_reg = regulator_get(NULL, "ext_5v");
-		if (IS_ERR(ext_5v_reg)) {
-			pr_err("%s: unable to get ext_5v_reg\n", __func__);
-			ext_5v_reg = NULL;
-			return;
-		}
-	}
+
 	if (on) {
-		if (regulator_enable(ext_5v_reg)) {
-			pr_err("%s: Unable to enable the regulator:"
-					" ext_5v_reg\n", __func__);
-			return;
-		}
 		if (regulator_enable(votg_5v_switch)) {
 			pr_err("%s: Unable to enable the regulator:"
 					" votg_5v_switch\n", __func__);
@@ -692,9 +666,6 @@ static void msm_hsusb_vbus_power(unsigned phy_info, int on)
 		if (regulator_disable(votg_5v_switch))
 			pr_err("%s: Unable to enable the regulator:"
 				" votg_5v_switch\n", __func__);
-		if (regulator_disable(ext_5v_reg))
-			pr_err("%s: Unable to enable the regulator:"
-				" ext_5v_reg\n", __func__);
 	}
 
 	vbus_is_on = on;
@@ -765,17 +736,17 @@ void board_register_reboot_notifier(void);
 
 void __init tenderloin_usb_init(void)
 {
+#ifdef CONFIG_MDMGPIO
+        platform_device_register(&mdmgpio_device);
+#endif
 #ifdef CONFIG_USB_EHCI_MSM_72K
-		msm_add_host(0, &msm_usb_host_pdata);
+        msm_add_host(0, &msm_usb_host_pdata);
 #endif
 #if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
 	if (boardtype_is_3g()) {
-		board_register_reboot_notifier();
+                board_register_reboot_notifier();
 		msm8x60_cfg_isp1763();
 		isp1763_modem_poweron(1);
 	}
-#endif
-#ifdef CONFIG_MDMGPIO
-        platform_device_register(&mdmgpio_device);
 #endif
 }

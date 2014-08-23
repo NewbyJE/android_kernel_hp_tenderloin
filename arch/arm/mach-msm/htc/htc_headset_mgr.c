@@ -260,6 +260,14 @@ int headset_notifier_register(struct headset_notifier *notifier)
 		HS_LOG("Register 1WIRE_REPORT_TYPE notifier");
 		hs_mgr_notifier.hs_1wire_report_type = notifier->func;
 		break;
+	case HEADSET_REG_1WIRE_OPEN:
+		HS_LOG("Register HEADSET_REG_1WIRE_OPEN notifier");
+		hs_mgr_notifier.hs_1wire_open = notifier->func;
+		break;
+	case HEADSET_REG_HS_INSERT:
+		HS_LOG("Register HS_INSERT notifier");
+		hs_mgr_notifier.hs_insert = notifier->func;
+		break;
 	default:
 		HS_LOG("Unknown register ID");
 		return 0;
@@ -677,6 +685,7 @@ static void mic_detect_work_func(struct work_struct *work)
 	case HEADSET_NO_MIC:
 		new_state |= BIT_HEADSET_NO_MIC;
 		HS_LOG("HEADSET_NO_MIC");
+		set_35mm_hw_state(0);
 		break;
 	case HEADSET_MIC:
 		new_state |= BIT_HEADSET;
@@ -721,9 +730,11 @@ static void mic_detect_work_func(struct work_struct *work)
 	} else
 		HS_LOG("MIC status has not changed");
 
+if (mic != HEADSET_NO_MIC)
+	{
 	if (hs_mgr_notifier.key_int_enable)
 		hs_mgr_notifier.key_int_enable(1);
-
+	}
 	mutex_unlock(&hi->mutex_lock);
 }
 
@@ -953,6 +964,7 @@ static void insert_detect_work_func(struct work_struct *work)
 	case HEADSET_NO_MIC:
 		new_state |= BIT_HEADSET_NO_MIC;
 		HS_LOG_TIME("HEADSET_NO_MIC");
+		set_35mm_hw_state(0);
 		break;
 	case HEADSET_MIC:
 		new_state |= BIT_HEADSET;
@@ -1000,10 +1012,11 @@ static void insert_detect_work_func(struct work_struct *work)
 	switch_set_state(&hi->sdev_h2w, new_state);
 	hpin_report++;
 
-
-	if (hs_mgr_notifier.key_int_enable)
-		hs_mgr_notifier.key_int_enable(1);
-
+	if (mic != HEADSET_NO_MIC)
+		{
+			if (hs_mgr_notifier.key_int_enable)
+				hs_mgr_notifier.key_int_enable(1);
+		}
 	mutex_unlock(&hi->mutex_lock);
 
 #ifdef HTC_HEADSET_CONFIG_QUICK_BOOT
@@ -1031,6 +1044,9 @@ int hs_notify_plug_event(int insert, unsigned int intr_id)
 	mutex_lock(&hi->mutex_lock);
 	hi->is_ext_insert = insert;
 	mutex_unlock(&hi->mutex_lock);
+
+	if (hs_mgr_notifier.hs_insert)
+		hs_mgr_notifier.hs_insert(insert);
 
 	cancel_delayed_work_sync(&mic_detect_work);
 	ret = cancel_delayed_work_sync(&insert_detect_work);
@@ -1248,8 +1264,9 @@ int hs_notify_key_irq(void)
 		return 1;
 	}
 
-	if (hi->hs_35mm_type == HEADSET_NO_MIC ||
-		   hi->hs_35mm_type == HEADSET_UNKNOWN_MIC) {
+	
+	if ((hi->hs_35mm_type == HEADSET_NO_MIC || hi->hs_35mm_type == HEADSET_UNKNOWN_MIC) &&
+		time_before_eq(jiffies, hi->hpin_jiffies + 10 * HZ)) {
 		HS_LOG("IGNORE key IRQ (Unstable HPIN)");
 		
 		update_mic_status(HS_DEF_MIC_DETECT_COUNT);
@@ -1289,16 +1306,14 @@ static void usb_headset_detect(int type)
 		HS_LOG_TIME("Insert USB_AUDIO_OUT (state %d, %d)",
 			    state_h2w, state_usb);
 		break;
-#ifdef CONFIG_SUPPORT_USB_SPEAKER
 	case USB_AUDIO_OUT_DGTL:
 		hi->usb_headset.type = USB_AUDIO_OUT;
-                hi->usb_headset.status = STATUS_CONNECTED_ENABLED;
-                state_h2w |= BIT_USB_AUDIO_OUT;
-                state_usb = GOOGLE_USB_AUDIO_DGTL;
-                HS_LOG_TIME("Insert USB_AUDIO_OUT DGTL (state %d, %d)",
-                            state_h2w, state_usb);
-                break;
-#endif
+		hi->usb_headset.status = STATUS_CONNECTED_ENABLED;
+		state_h2w |= BIT_USB_AUDIO_OUT;
+		state_usb = GOOGLE_USB_AUDIO_DGTL;
+		HS_LOG_TIME("Insert USB_AUDIO_OUT DGTL (state %d, %d)",
+				state_h2w, state_usb);
+		break;
 	default:
 		HS_LOG("Unknown headset type");
 	}
@@ -1325,9 +1340,7 @@ void headset_ext_detect(int type)
 	case USB_NO_HEADSET:
 		
 	case USB_AUDIO_OUT:
-#ifdef CONFIG_SUPPORT_USB_SPEAKER
 	case USB_AUDIO_OUT_DGTL:
-#endif
 		usb_headset_detect(type);
 		break;
 	default:
@@ -1996,7 +2009,7 @@ static int htc_headset_mgr_resume(struct platform_device *pdev)
 {
 	HS_DBG();
 	if (hi->one_wire_mode == 1)
-		hs_notify_key_irq();
+		hs_mgr_notifier.hs_1wire_open();
 	return 0;
 }
 

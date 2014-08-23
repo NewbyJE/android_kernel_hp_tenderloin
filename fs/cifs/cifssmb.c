@@ -3454,13 +3454,11 @@ static __u16 ACL_to_cifs_posix(char *parm_data, const char *pACL,
 		return 0;
 	}
 	cifs_acl->version = cpu_to_le16(1);
-	if (acl_type == ACL_TYPE_ACCESS) {
+	if (acl_type == ACL_TYPE_ACCESS)
 		cifs_acl->access_entry_count = cpu_to_le16(count);
-		cifs_acl->default_entry_count = __constant_cpu_to_le16(0xFFFF);
-	} else if (acl_type == ACL_TYPE_DEFAULT) {
+	else if (acl_type == ACL_TYPE_DEFAULT)
 		cifs_acl->default_entry_count = cpu_to_le16(count);
-		cifs_acl->access_entry_count = __constant_cpu_to_le16(0xFFFF);
-	} else {
+	else {
 		cFYI(1, "unknown ACL type %d", acl_type);
 		return 0;
 	}
@@ -3830,7 +3828,7 @@ CIFSSMBGetCIFSACL(const int xid, struct cifs_tcon *tcon, __u16 fid,
 {
 	int rc = 0;
 	int buf_type = 0;
-	QUERY_SEC_DESC_REQ *pSMB = NULL;
+	QUERY_SEC_DESC_REQ *pSMB;
 	struct kvec iov[1];
 
 	cFYI(1, "GetCifsACL");

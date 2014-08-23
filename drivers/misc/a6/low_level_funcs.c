@@ -159,9 +159,7 @@ unsigned long AllShifts(word Format, unsigned long Data)
    unsigned long TDOword = 0x00000000;
    unsigned long MSB = 0x00000000;
    word i;
-   //unsigned long flags = 0;
 
-   //DisableInterrupts(flags);
    switch(Format)
    {
    case F_BYTE: MSB = 0x00000080;
@@ -173,7 +171,6 @@ unsigned long AllShifts(word Format, unsigned long Data)
    case F_LONG: MSB = 0x80000000;
      break;
    default: // this is an unsupported format, function will just return 0
-     //EnableInterrupts(flags);
      return TDOword;
    }
    // shift in bits
@@ -208,7 +205,6 @@ unsigned long AllShifts(word Format, unsigned long Data)
    {
      TDOword = ((TDOword << 16) + (TDOword >> 4)) & 0x000FFFFF;
    }
-   //EnableInterrupts(flags);
    
    return(TDOword);
 }

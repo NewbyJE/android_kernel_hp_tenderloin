@@ -82,7 +82,7 @@
 #define WLED_MOD_CLK_CTRL_SET		0x06	
 #define WLED_CNTRL_14_RESERVED_MASK	0x0F
 #define WLED_CNTRL_14_RESERVED_SET	0x03
-#define WLED_CNTRL_15_RESERVED_SET	0x2F
+#define WLED_CNTRL_15_RESERVED_SET	0x3F	
 
 #define WLED_MAX_LEVEL			255
 #define WLED_8_BIT_MASK			0xFF
@@ -349,10 +349,6 @@ led_rgb_set(struct pm8xxx_led_data *led, enum led_brightness value)
 	rc = pm8xxx_readb(led->dev->parent, SSBI_REG_ADDR_RGB_CNTL1, &val);
 	if (rc) {
 		LED_ERR("can't read rgb ctrl register rc=%d\n",	rc);
-		return;
-	}
-
-	if (led->pwm_channel == 0 || led->pwm_channel == 1){
 		return;
 	}
 
@@ -1337,7 +1333,7 @@ static int __devinit pm8xxx_led_probe(struct platform_device *pdev)
 		} else {
 			INIT_DELAYED_WORK(&led[i].blink_delayed_work, led_blink_do_work);
 		}
-		if ((led_dat->id == PM8XXX_ID_RGB_LED_GREEN) || (led_dat->id == PM8XXX_ID_RGB_LED_RED)) {
+		if (!strcmp(led_dat->cdev.name, "amber") || !strcmp(led_dat->cdev.name, "green")) {
 			rc = device_create_file(led_dat->cdev.dev, &dev_attr_pwm_coefficient);
 			if (rc < 0) {
 				LED_ERR("%s: Failed to create %d attr pwm_coefficient\n", __func__, i);

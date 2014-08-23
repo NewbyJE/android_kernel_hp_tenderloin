@@ -3569,10 +3569,11 @@ static struct clk_lookup msm_clocks_8x60[] = {
 	CLK_LOOKUP("core_clk",		gsbi8_qup_clk.c,	"spi_qsd.3"),
 	CLK_LOOKUP("core_clk",		gsbi8_qup_clk.c,	"qup_i2c.3"),
 	CLK_LOOKUP("core_clk",		gsbi9_qup_clk.c,	"qup_i2c.2"),
+	CLK_LOOKUP("core_clk",		gsbi10_qup_clk.c,	"qup_i2c.11"),
 #ifdef CONFIG_MACH_TENDERLOIN
 	CLK_LOOKUP("core_clk",		gsbi10_qup_clk.c,	"qup_i2c.5"),
 #else
-	CLK_LOOKUP("core_clk",		gsbi10_qup_clk.c,	"qup_i2c.11"),
+	CLK_LOOKUP("core_clk",		gsbi10_qup_clk.c,	"spi_qsd.1"),
 #endif
 	CLK_LOOKUP("core_clk",		gsbi11_qup_clk.c,	""),
 	CLK_LOOKUP("gsbi_qup_clk",	gsbi12_qup_clk.c,	"msm_dsps"),
@@ -3617,13 +3618,16 @@ static struct clk_lookup msm_clocks_8x60[] = {
 	CLK_LOOKUP("iface_clk",		gsbi8_p_clk.c,		"spi_qsd.3"),
 	CLK_LOOKUP("iface_clk",		gsbi9_p_clk.c, "msm_serial_hsl.1"),
 	CLK_LOOKUP("iface_clk",		gsbi9_p_clk.c,		"qup_i2c.2"),
+	CLK_LOOKUP("iface_clk",		gsbi10_p_clk.c,		"qup_i2c.11"),
+	CLK_LOOKUP("iface_clk",		gsbi10_p_clk.c,		"msm_uartdm.1"),
+	CLK_LOOKUP("iface_clk",		gsbi11_p_clk.c,		"msm_serial_hsl.3"),
 #ifdef CONFIG_MACH_TENDERLOIN
 	CLK_LOOKUP("iface_clk",		gsbi10_p_clk.c,		"qup_i2c.5"),
 #else
-	CLK_LOOKUP("iface_clk",		gsbi10_p_clk.c,		"qup_i2c.11"),
+	CLK_LOOKUP("iface_clk",		gsbi10_p_clk.c,		"spi_qsd.1"),
 #endif
 	CLK_LOOKUP("iface_clk",		gsbi10_p_clk.c,		"msm_uartdm.1"),
-	CLK_LOOKUP("iface_clk",		gsbi11_p_clk.c,		"msm_serial_hsl.3"),
+	CLK_LOOKUP("iface_clk",		gsbi11_p_clk.c,		""),
 	CLK_LOOKUP("iface_clk",		gsbi12_p_clk.c,		""),
 	CLK_LOOKUP("iface_clk",		gsbi12_p_clk.c, "msm_serial_hsl.0"),
 #ifdef CONFIG_MACH_TENDERLOIN
@@ -3700,6 +3704,10 @@ static struct clk_lookup msm_clocks_8x60[] = {
 	CLK_LOOKUP("csi_vfe_clk",	csi1_vfe_clk.c, "msm_camera_ov7692.0"),
 	CLK_LOOKUP("csi_vfe_clk",	csi1_vfe_clk.c, "msm_camera_ov9726.0"),
 	CLK_LOOKUP("csi_vfe_clk",	csi1_vfe_clk.c, "msm_csic.1"),
+#ifdef CONFIG_MSM_CAMERA_V4L2
+	CLK_LOOKUP("csi0_vfe_clk",	csi0_vfe_clk.c,		"msm_vfe.0"),
+	CLK_LOOKUP("csi1_vfe_clk",	csi1_vfe_clk.c,		"msm_vfe.0"),
+#endif
 	CLK_LOOKUP("vfe_clk",		vfe_clk.c,		NULL),
 	CLK_LOOKUP("core_clk",		vfe_clk.c,	"footswitch-8x60.8"),
 	CLK_LOOKUP("bus_clk",		vfe_axi_clk.c,	"footswitch-8x60.8"),

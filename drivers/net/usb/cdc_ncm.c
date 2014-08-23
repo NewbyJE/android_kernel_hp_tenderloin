@@ -48,7 +48,6 @@
 #include <linux/crc32.h>
 #include <linux/usb.h>
 #include <linux/hrtimer.h>
-#include <linux/atomic.h>
 #include <linux/usb/usbnet.h>
 #include <linux/usb/cdc.h>
 
@@ -133,7 +132,7 @@ struct cdc_ncm_ctx {
 	u16 tx_seq;
 	u16 rx_seq;
 	u16 connected;
-	u16 packet_cnt;		/* MBM */
+	u16 packet_cnt;
 };
 
 static void cdc_ncm_txpath_bh(unsigned long param);
@@ -621,13 +620,12 @@ advance:
 	if (device_can_wakeup(&dev->udev->dev))
 		device_init_wakeup(&dev->udev->dev, 1);
 
-	dev_info(&dev->udev->dev, "wakeup: %s\n", device_can_wakeup(&dev->udev->dev)
-		? (device_may_wakeup(&dev->udev->dev) ? "enabled" : "disabled")
-		: "");
+		dev_info(&dev->udev->dev, "wakeup: %s\n", device_can_wakeup(&dev->udev->dev)
+				? (device_may_wakeup(&dev->udev->dev) ? "enabled" : "disabled")
+						: "");
 
 	/* MBM - Set friendly name for Android */
 	strcpy(dev->net->name, "rmnet%d");
-
 	netif_carrier_off(dev->net);
 	ctx->tx_speed = ctx->rx_speed = 0;
 	return 0;
@@ -1008,10 +1006,10 @@ static int cdc_ncm_rx_fixup(struct usbnet *dev, struct sk_buff *skb_in)
 	if (le32_to_cpu(nth16->dwSignature) != USB_CDC_NCM_NTH16_SIGN) {
 		ctx->packet_cnt++;
 		pr_debug("invalid NTH16 signature <%u>, packet_cnt = %d\n",
-			le32_to_cpu(nth16->dwSignature), ctx->packet_cnt);
+		le32_to_cpu(nth16->dwSignature), ctx->packet_cnt);
 
 		/* MBM - Discard any spurious 512 byte packets
-		   to prevent driver from stalling */
+		to prevent driver from stalling */
 
 		if (skb_in->len == ctx->rx_max) {
 			cdc_ncm_set_urb_size(dev, CDC_NCM_MIN_TX_PKT);
@@ -1108,7 +1106,7 @@ static int cdc_ncm_rx_fixup(struct usbnet *dev, struct sk_buff *skb_in)
 				goto error;
 			skb->len = len;
 			/* MBM - Set truesize to enable TCP Sliding
-			   Window to work properly */
+			Window to work properly */
 			skb->truesize = len + sizeof(struct sk_buff);
 			skb->data = ((u8 *)skb_in->data) + offset;
 			skb_set_tail_pointer(skb, len);
@@ -1192,8 +1190,8 @@ static void cdc_ncm_status(struct usbnet *dev, struct urb *urb)
 			netif_carrier_off(dev->net);
 			ctx->tx_speed = ctx->rx_speed = 0;
 			/* MBM - Make sure next URB is 512 bytes
-			   to capture any spurious pakets during
-			   next connetion */
+			to capture any spurious pakets during
+			next connetion */
 			ctx->packet_cnt = 0;
 			cdc_ncm_set_urb_size(dev, CDC_NCM_MIN_TX_PKT);
 		}

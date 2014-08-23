@@ -42,6 +42,7 @@ static struct gpiomux_setting i2c_active = {
 	.pull = GPIOMUX_PULL_NONE,
 };
 
+#if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
 static struct gpiomux_setting ebi2_a_d = {
 	.func = GPIOMUX_FUNC_1,
 	.drv = GPIOMUX_DRV_8MA,
@@ -77,6 +78,7 @@ static struct gpiomux_setting ebi2_cs3 = {
 	.drv = GPIOMUX_DRV_8MA,
 	.pull = GPIOMUX_PULL_UP,
 };
+#endif
 
 #if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
 static struct gpiomux_setting ebi2_cs4 = {
@@ -84,13 +86,13 @@ static struct gpiomux_setting ebi2_cs4 = {
 	.drv = GPIOMUX_DRV_8MA,
 	.pull = GPIOMUX_PULL_UP,
 };
-#endif
 
 static struct gpiomux_setting ebi2_adv = {
 	.func = GPIOMUX_FUNC_1,
 	.drv = GPIOMUX_DRV_8MA,
 	.pull = GPIOMUX_PULL_UP,
 };
+#endif
 
 #ifdef CONFIG_MSM8X60_AUDIO
 static struct gpiomux_setting aux_pcm_active_config = {
@@ -204,11 +206,12 @@ static struct gpiomux_setting gpio_outh_8m_pn =
 		GPIOMUX_FUNC_GPIO, GPIOMUX_DRV_8MA, GPIOMUX_PULL_NONE, GPIOMUX_OUT_HIGH)
 #define GPIO_OUTH_8M_PN &gpio_outh_8m_pn
 
+#ifdef CONFIG_A6
 static struct gpiomux_setting gpio_outh_8m_pu = 
   GPIOMUX_DCFG(\
 		GPIOMUX_FUNC_GPIO, GPIOMUX_DRV_8MA, GPIOMUX_PULL_UP, GPIOMUX_OUT_HIGH)
 #define GPIO_OUTH_8M_PU &gpio_outh_8m_pu
-
+#endif
 
 static struct gpiomux_setting gpio_in_2m_pk = 
   GPIOMUX_CFG(\
@@ -302,10 +305,12 @@ static struct gpiomux_setting lcdc_active_cfg_2m =
 #define MDM2AP_STATUS_SUSPEND_CFG \
 	GPIOMUX_CFG(0, 0, GPIOMUX_PULL_NONE)
 
+#ifdef CONFIG_A6
 static struct gpiomux_setting cam_gpio_outh_8m_pn =
   GPIOMUX_DCFG(\
 		GPIOMUX_FUNC_1, GPIOMUX_DRV_8MA, GPIOMUX_PULL_NONE, GPIOMUX_OUT_HIGH)
 #define CAM_F1_OUTH_8M_PN &cam_gpio_outh_8m_pn
+#endif
 
 static struct gpiomux_setting cam_gpio_outl_8m_pn =
   GPIOMUX_DCFG(\
@@ -339,6 +344,7 @@ static struct msm_gpiomux_config msm8x60_gsbi_configs[] __initdata = {
 	},
 };
 
+#if defined(CONFIG_USB_PEHCI_HCD) || defined(CONFIG_USB_PEHCI_HCD_MODULE)
 static struct msm_gpiomux_config msm8x60_ebi2_configs[] __initdata = {
 	{
 		.gpio      = 40,
@@ -524,6 +530,7 @@ static struct msm_gpiomux_config msm8x60_ebi2_configs[] __initdata = {
 		},
 	},
 };
+#endif
 
 #ifdef CONFIG_USB_PEHCI_HCD
 static struct msm_gpiomux_config msm8x60_isp_usb_configs[] __initdata = {
@@ -1108,7 +1115,6 @@ static struct msm_gpiomux_config msm8x60_pmic_configs[] __initdata = {
 };
 
 #ifdef CONFIG_WEBCAM_MT9M113
-
 #define TENDERLOIN_CAM_I2C_DATA		47
 #define TENDERLOIN_CAM_I2C_CLK		48
 #define TENDERLOIN_CAMIF_MCLK		32

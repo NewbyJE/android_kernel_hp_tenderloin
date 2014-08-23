@@ -25,7 +25,7 @@ obj-$(CONFIG_INPUT_DA9052_ONKEY)	+= da9052_onkey.o
 obj-$(CONFIG_INPUT_DM355EVM)		+= dm355evm_keys.o
 obj-$(CONFIG_INPUT_GP2A)		+= gp2ap002a00f.o
 obj-$(CONFIG_INPUT_GPIO_TILT_POLLED)	+= gpio_tilt_polled.o
-obj-$(CONFIG_INPUT_GPIO)		+= gpio_event.o gpio_matrix.o gpio_input.o gpio_output.o gpio_axis.o gpio_switch.o
+obj-$(CONFIG_INPUT_GPIO)		+= gpio_event.o gpio_matrix.o gpio_input.o gpio_output.o gpio_axis.o
 obj-$(CONFIG_HP_SDC_RTC)		+= hp_sdc_rtc.o
 obj-$(CONFIG_INPUT_IXP4XX_BEEPER)	+= ixp4xx-beeper.o
 obj-$(CONFIG_INPUT_KEYCHORD)		+= keychord.o
@@ -63,16 +63,21 @@ obj-$(CONFIG_BOSCH_BMA150)              += bma150.o
 obj-$(CONFIG_STM_LIS3DH)		+= lis3dh_acc.o
 obj-$(CONFIG_BMP18X)			+= bmp18x-core.o
 obj-$(CONFIG_BMP18X_I2C)		+= bmp18x-i2c.o
+obj-$(CONFIG_SENSORS_AKM8963_NST)	+= akm8963_nst.o
+obj-$(CONFIG_SENSORS_AKM8963)		+= akm8963.o
 obj-$(CONFIG_SENSORS_AKM8975)		+= akm8975.o
 obj-$(CONFIG_SENSORS_PANASONIC_GYRO)	+= ewtzmu2.o
 obj-$(CONFIG_SENSORS_BMA250)		+= bma250.o
+obj-$(CONFIG_SENSORS_BMA250_BOSCH)	+= bma250_bosch.o
+obj-$(CONFIG_INPUT_CAPELLA_CM3628)	+= cm3628.o
 obj-$(CONFIG_INPUT_CAPELLA_CM3629)	+= cm3629.o
+obj-$(CONFIG_INPUT_ISL29028)		+= isl29028.o
+obj-$(CONFIG_INPUT_ISL29029)		+= isl29029.o
 obj-$(CONFIG_SENSORS_R3GD20)		+= r3gd20.o
+ifeq ($(CONFIG_MACH_HTC),y)
+obj-y 					+= mpu3050_htc/
+else
 obj-y 					+= mpu3050/
+endif
 obj-$(CONFIG_INPUT_LSM303DLH)		+= lsm303dlh_mag_sysfs.o lsm303dlh_acc_sysfs.o
 obj-$(CONFIG_INPUT_ISL29023)		+= isl29023.o
-obj-$(CONFIG_LIGHTSENSOR_MICROP)	+= cm3602_lightsensor_microp.o
-obj-$(CONFIG_INPUT_CAPELLA_CM3602)	+= capella_cm3602.o
-obj-$(CONFIG_SENSORS_BMA150_SPI)	+= bma150_spi.o
-obj-$(CONFIG_BOSCH_BMA250)      += bma250_bosch.o
-obj-$(CONFIG_SENSORS_AK8963_NST)    += akm8963_nst.o

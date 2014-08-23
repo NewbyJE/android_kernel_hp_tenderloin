@@ -97,6 +97,7 @@ extern int dying_processors_read_proc(char *page, char **start, off_t off,
 		int count, int *eof, void *data);
 
 extern int get_partition_num_by_name(char *name);
+extern const char *get_partition_name_by_num(int partnum);
 
 #ifdef CONFIG_FB_MSM_HDMI_MHL
 typedef struct {
@@ -106,20 +107,7 @@ typedef struct {
 } mhl_driving_params;
 #endif
 
-enum msm_camera_csi_data_format {
-	CSI_8BIT,
-	CSI_10BIT,
-	CSI_12BIT,
-};
-
-struct msm_camera_csi_params {
-	enum msm_camera_csi_data_format data_format;
-	uint8_t lane_cnt;
-	uint8_t lane_assign;
-	uint8_t settle_cnt;
-	uint8_t dpcm_scheme;
-};
-
+#ifdef CONFIG_MSM_CAMERA
 struct camera_led_info {
 	uint16_t enable;
 	uint16_t low_limit_led_state;
@@ -169,6 +157,11 @@ enum rawchip_enable_type {
 	RAWCHIP_MIPI_BYPASS,
 };
 
+enum hdr_mode_type {
+	NON_HDR_MODE,
+	HDR_MODE,
+};
+
 enum camera_vreg_type {
 	REG_LDO,
 	REG_VS,
@@ -190,17 +183,6 @@ struct camera_vreg_t {
 	int op_mode;
 };
 
-enum cam_vcm_onoff_type {
-	STATUS_OFF,
-	STATUS_ON,
-};
-
-enum htc_camera_image_type_board {
-	HTC_CAMERA_IMAGE_NONE_BOARD,
-	HTC_CAMERA_IMAGE_YUSHANII_BOARD,
-	HTC_CAMERA_IMAGE_MAX_BOARD,
-};
-
 enum msm_camera_pixel_order_default {
 	MSM_CAMERA_PIXEL_ORDER_GR,
 	MSM_CAMERA_PIXEL_ORDER_RG,
@@ -214,9 +196,16 @@ enum sensor_mount_angle {
 	ANGLE_270,
 };
 
-enum hdr_mode_type {
-	NON_HDR_MODE,
-	HDR_MODE,
+enum htc_camera_image_type_board {
+	HTC_CAMERA_IMAGE_NONE_BOARD,
+	HTC_CAMERA_IMAGE_YUSHANII_BOARD,
+	HTC_CAMERA_IMAGE_MAX_BOARD,
 };
+
+enum cam_vcm_onoff_type {
+	STATUS_OFF,
+	STATUS_ON,
+};
+#endif /* CONFIG_MSM_CAMERA */
 
 #endif /* __ASM_ARCH_MSM_BOARD_EXT_HTC_H */

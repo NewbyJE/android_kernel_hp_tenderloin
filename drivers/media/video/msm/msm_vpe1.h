@@ -29,7 +29,11 @@
 #ifndef _msm_vpe1_h_
 #define _msm_vpe1_h_
 
+#ifdef CONFIG_MACH_TENDERLOIN
+#include <mach/camera-tenderloin.h>
+#else
 #include <mach/camera.h>
+#endif
 
 /***********  start of register offset *********************/
 #define VPE_INTR_ENABLE_OFFSET                0x0020

@@ -21,7 +21,6 @@
 #include <linux/mfd/pmic8058.h>
 
 #include <linux/leds.h>
-#include <linux/leds-pm8058.h>
 #include <linux/clk.h>
 #include <linux/pmic8058-othc.h>
 #include <linux/mfd/pmic8901.h>
@@ -85,7 +84,6 @@
 #include <mach/msm_iomap.h>
 #include <mach/msm_memtypes.h>
 #include <asm/mach/mmc.h>
-#include <mach/htc_battery_8x60.h>
 #ifdef CONFIG_TPS65200
 #include <linux/tps65200.h>
 #endif
@@ -421,7 +419,8 @@ static struct regulator_consumer_supply vreg_consumers_8901_S1[] = {
 static struct regulator_init_data saw_s0_init_data = {
 		.constraints = {
 			.name = "8901_s0",
-			.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE,
+			.valid_ops_mask	= REGULATOR_CHANGE_VOLTAGE |
+					  REGULATOR_CHANGE_STATUS,
 			.min_uV = 800000,
 			.max_uV = 1325000,
 		},
@@ -432,7 +431,8 @@ static struct regulator_init_data saw_s0_init_data = {
 static struct regulator_init_data saw_s1_init_data = {
 		.constraints = {
 			.name = "8901_s1",
-			.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE,
+			.valid_ops_mask	= REGULATOR_CHANGE_VOLTAGE |
+					  REGULATOR_CHANGE_STATUS,
 			.min_uV = 800000,
 			.max_uV = 1325000,
 		},
@@ -531,7 +531,6 @@ static struct user_pin bt_pins[] = {
 		.options    =  0,
 		.irq_handler = NULL,
 		.irq_config =  0,
-		.init_req   = 0,
 	},
 	{
 		.name       =  "host_wake",
@@ -544,8 +543,7 @@ static struct user_pin bt_pins[] = {
 		.options    =  PIN_IRQ | PIN_WAKEUP_SOURCE,
 		.irq_handler = NULL,
 		.irq_config = IRQF_TRIGGER_RISING,
-		.irq_handle_mode = IRQ_HANDLE_AUTO,
-		.init_req   = 1,
+		.irq_handle_mode = IRQ_HANDLE_AUTO
 	},
 };
 
@@ -1277,7 +1275,6 @@ static struct platform_device msm_vpe_device = {
 };
 #endif
 
-
 #ifdef CONFIG_MSM_GEMINI
 static struct resource msm_gemini_resources[] = {
 	{
@@ -1429,12 +1426,12 @@ static void __init msm8x60_init_dsps(void)
 }
 #endif 
 
-#define MSM_PMEM_SF_SIZE 0x200000 /* 2 Mbytes */
+#define MSM_PMEM_SF_SIZE 0x4000000 /* 64 Mbytes */
 #define MSM_HDMI_PRIM_PMEM_SF_SIZE 0x4000000 /* 64 Mbytes */
 
 #define MSM_PMEM_KERNEL_EBI1_SIZE  0x600000
-#define MSM_PMEM_ADSP_SIZE         0x600000 /* 6 Mbytes */
-#define MSM_PMEM_AUDIO_SIZE        0x28B000
+#define MSM_PMEM_ADSP_SIZE         0x4200000
+#define MSM_PMEM_AUDIO_SIZE        0x4CF000
 
 #define MSM_SMI_BASE          0x38000000
 #define MSM_SMI_SIZE          0x4000000
@@ -1451,7 +1448,7 @@ static void __init msm8x60_init_dsps(void)
 #define MSM_PMEM_SMIPOOL_SIZE USER_SMI_SIZE
 
 #define MSM_ION_SF_SIZE		0x4000000 /* 64MB */
-#define MSM_ION_CAMERA_SIZE	0x4000000 /* 64MB */
+#define MSM_ION_CAMERA_SIZE     MSM_PMEM_ADSP_SIZE
 #define MSM_ION_QSECOM_SIZE	0x600000 /* (6MB) */
 #define MSM_ION_AUDIO_SIZE	MSM_PMEM_AUDIO_SIZE
 
@@ -1631,7 +1628,7 @@ static struct platform_device android_pmem_smipool_device = {
 	.id = 7,
 	.dev = { .platform_data = &android_pmem_smipool_pdata },
 };
-#endif
+#endif 
 #endif 
 
 static void __init msm8x60_allocate_memory_regions(void)
@@ -2643,8 +2640,8 @@ static struct lsm303dlh_acc_platform_data lsm303dlh_acc_pdata = {
 	.min_interval = LSM303DLH_ACC_MIN_POLL_PERIOD_MS,
 	.g_range = LSM303DLH_ACC_G_2G,
 #ifdef CONFIG_MACH_TENDERLOIN
-    .axis_map_x = 0,
-    .axis_map_y = 1,
+    .axis_map_x = 1,
+    .axis_map_y = 0,
     .axis_map_z = 2,
     .negate_x = 1,
     .negate_y = 0,
@@ -2666,8 +2663,8 @@ static struct lsm303dlh_mag_platform_data lsm303dlh_mag_pdata = {
 	.min_interval = LSM303DLH_MAG_MIN_POLL_PERIOD_MS,
 	.h_range = LSM303DLH_MAG_H_8_1G,
 #ifdef CONFIG_MACH_TENDERLOIN
-    .axis_map_x = 0,
-    .axis_map_y = 1,
+    .axis_map_x = 1,
+    .axis_map_y = 0,
     .axis_map_z = 2,
     .negate_x = 1,
     .negate_y = 0,
@@ -2759,6 +2756,7 @@ static void __init tenderloin_init_mpu3050(void)
 #ifdef CONFIG_MFD_WM8994
 
 #define WM8958_I2C_SLAVE_ADDR 0x1a
+
 static struct regulator *vreg_wm8958;
 
 static int wm8994_ldo_power(int enable)
@@ -2830,7 +2828,7 @@ static unsigned int msm_wm8958_setup_power(void)
 
 static void msm_wm8958_shutdown_power(void)
 {
- if (wm8994_reg_status){
+	 if (wm8994_reg_status){
 		static struct regulator *tp_5v0 = NULL;
 		int rc;
 
@@ -2859,11 +2857,10 @@ static void msm_wm8958_shutdown_power(void)
 
 		regulator_put(vreg_wm8958);
 		wm8994_reg_status = 0;
- }else{
-		pr_err("%s: codec wm8994_reg_status = %d\n", __func__, wm8994_reg_status);
+	 }else{
+		pr_err("%s: Already disabled -- wm8994_reg_status = %d\n", __func__, wm8994_reg_status);
 		return;
- }
-
+	 }
 }
 
 static struct wm8994_pdata wm8958_pdata = {
@@ -3091,13 +3088,17 @@ static void fixup_i2c_configs(void)
 
 	if (machine_is_tenderloin() && boardtype_is_3g()) {
 #ifdef CONFIG_INPUT_LSM303DLH
-		lsm303dlh_acc_pdata.negate_x = 1;
+		lsm303dlh_acc_pdata.negate_y = 1;
 		lsm303dlh_acc_pdata.negate_z = 1;
-		lsm303dlh_mag_pdata.negate_x = 1;
+		lsm303dlh_mag_pdata.negate_y = 1;
 		lsm303dlh_mag_pdata.negate_z = 1;
 #endif
 		mpu3050_data.orientation[0] = -mpu3050_data.orientation[0];
 		mpu3050_data.orientation[8] = -mpu3050_data.orientation[8];
+		mpu3050_data.accel.orientation[0] = -mpu3050_data.accel.orientation[0];
+		mpu3050_data.accel.orientation[8] = -mpu3050_data.accel.orientation[8];
+		mpu3050_data.compass.orientation[0] = -mpu3050_data.compass.orientation[0];
+		mpu3050_data.compass.orientation[8] = -mpu3050_data.compass.orientation[8];
 	}
 #endif
 }
@@ -3192,6 +3193,7 @@ static void __init register_i2c_devices(void)
 }
 
 #ifdef CONFIG_SERIAL_MSM_HS
+
 static int configure_uart_gpios(int on)
 {
 	int ret = 0;
@@ -3201,10 +3203,11 @@ static int configure_uart_gpios(int on)
 
 	return ret;
 }
+
 static struct msm_serial_hs_platform_data msm_uart_dm1_pdata = {
 	.inject_rx_on_wakeup = 1,
 	.rx_to_inject = 0xFD,
-	.gpio_config = configure_uart_gpios,
+    .gpio_config = configure_uart_gpios,
 };
 #endif
 
@@ -3312,7 +3315,7 @@ void msm_fusion_setup_pinctrl(void)
 
 void tenderloin_add_usb_devices(void)
 {
-	printk(KERN_INFO "%s rev: %d\n", __func__, system_rev);
+	printk(KERN_INFO "%s\n", __func__);
 }
 
 static void __init msm8x60_gfx_init(void)
@@ -3437,9 +3440,6 @@ static void __init tenderloin_init(void)
 	tenderloin_init_mpu3050();
 
         tenderloin_init_ts();
-#ifdef CONFIG_MSM_CAMERA
-//        msm8x60_init_cam();
-#endif
 
 #ifdef CONFIG_BATTERY_MSM8X60
         platform_device_register(&msm_charger_device);
@@ -3452,12 +3452,12 @@ static void __init tenderloin_init(void)
 	platform_add_devices(tenderloin_devices,
 			     ARRAY_SIZE(tenderloin_devices));
 
-	tenderloin_init_fb();
+        tenderloin_init_fb();
 
 	lcdc_lg_panel_power(1);
-	tenderloin_gpio_mpp_init();
-	tenderloin_usb_init();
-	platform_device_register(&tenderloin_8901_mpp_vreg);
+    tenderloin_gpio_mpp_init();
+        tenderloin_usb_init();
+        platform_device_register(&tenderloin_8901_mpp_vreg);
 #ifdef CONFIG_MSM_DSPS
 	msm8x60_init_dsps();
 #endif
@@ -3504,3 +3504,4 @@ MACHINE_START(TENDERLOIN, "tenderloin")
 	.init_very_early = tenderloin_early_memory,
 	.restart = msm_restart,
 MACHINE_END
+

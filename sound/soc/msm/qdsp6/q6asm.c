@@ -1620,7 +1620,7 @@ int q6asm_open_write_v2(struct audio_client *ac, uint32_t format,
 					uint16_t bit_width)
 {
 	int rc = 0x00;
-	struct asm_stream_cmd_open_write open;
+	struct asm_stream_cmd_open_write_v2 open;
 	static int  if_first_open_write_v2 = 0;
 
 	if ((ac == NULL) || (ac->apr == NULL)) {
@@ -1630,6 +1630,7 @@ int q6asm_open_write_v2(struct audio_client *ac, uint32_t format,
 	pr_debug("%s: session[%d] wr_format[0x%x], bitwidth[%d]",
 			__func__, ac->session, format, bit_width);
 
+	
 	if (!if_first_open_write_v2)
 	{
 		msleep(30);
@@ -1640,7 +1641,7 @@ int q6asm_open_write_v2(struct audio_client *ac, uint32_t format,
 
 	open.hdr.opcode = ASM_STREAM_CMD_OPEN_WRITE_V2;
 	open.uMode = STREAM_PRIORITY_HIGH;
-	open.stream_handle = bit_width;
+	open.bits_per_sample = bit_width;
 	open.sink_endpoint = ASM_END_POINT_DEVICE_MATRIX;
 
 	open.post_proc_top = get_asm_topology();
@@ -1704,6 +1705,9 @@ int q6asm_open_write_v2(struct audio_client *ac, uint32_t format,
 		pr_err("%s: format = %x not supported\n", __func__, format);
 		goto fail_cmd;
 	}
+
+	ac->io_mode |= TUN_WRITE_IO_MODE;
+
 	return 0;
 fail_cmd:
 	return -EINVAL;
@@ -1969,7 +1973,6 @@ int q6asm_enc_cfg_blk_aac(struct audio_client *ac,
 fail_cmd:
 	return -EINVAL;
 }
-
 
 int q6asm_enc_cfg_blk_pcm(struct audio_client *ac,
 			uint32_t rate, uint32_t channels)
@@ -2557,16 +2560,15 @@ fail_cmd:
 	return -EINVAL;
 }
 
-int q6asm_media_format_block_multi_ch_pcm_format_support(
-			struct audio_client *ac, uint32_t rate,
-			uint32_t channels, uint16_t bit_width)
+int q6asm_media_format_block_multi_ch_pcm(struct audio_client *ac,
+				uint32_t rate, uint32_t channels)
 {
 	struct asm_stream_media_format_update fmt;
 	u8 *channel_mapping;
 	int rc = 0;
 
-	pr_debug("%s:session[%d]rate[%d]ch[%d]bit_width[%d]\n", __func__,
-				ac->session, rate, channels, bit_width);
+	pr_debug("%s:session[%d]rate[%d]ch[%d]\n", __func__, ac->session, rate,
+		channels);
 
 	q6asm_add_hdr(ac, &fmt.hdr, sizeof(fmt), TRUE);
 
@@ -2575,7 +2577,7 @@ int q6asm_media_format_block_multi_ch_pcm_format_support(
 	fmt.format = MULTI_CHANNEL_PCM;
 	fmt.cfg_size = sizeof(struct asm_multi_channel_pcm_fmt_blk);
 	fmt.write_cfg.multi_ch_pcm_cfg.num_channels = channels;
-	fmt.write_cfg.multi_ch_pcm_cfg.bits_per_sample = bit_width;
+	fmt.write_cfg.multi_ch_pcm_cfg.bits_per_sample = 16;
 	fmt.write_cfg.multi_ch_pcm_cfg.sample_rate = rate;
 	fmt.write_cfg.multi_ch_pcm_cfg.is_signed = 1;
 	fmt.write_cfg.multi_ch_pcm_cfg.is_interleaved = 1;
@@ -2589,13 +2591,27 @@ int q6asm_media_format_block_multi_ch_pcm_format_support(
 	} else if (channels == 2) {
 		channel_mapping[0] = PCM_CHANNEL_FL;
 		channel_mapping[1] = PCM_CHANNEL_FR;
+	} else if (channels == 4) {
+		channel_mapping[0] = PCM_CHANNEL_FL;
+		channel_mapping[1] = PCM_CHANNEL_FR;
+		channel_mapping[1] = PCM_CHANNEL_LB;
+		channel_mapping[1] = PCM_CHANNEL_RB;
 	} else if (channels == 6) {
+		channel_mapping[0] = PCM_CHANNEL_FL;
+		channel_mapping[1] = PCM_CHANNEL_FR;
+		channel_mapping[2] = PCM_CHANNEL_FC;
+		channel_mapping[3] = PCM_CHANNEL_LFE;
+		channel_mapping[4] = PCM_CHANNEL_LB;
+		channel_mapping[5] = PCM_CHANNEL_RB;
+	} else if (channels == 8) {
 		channel_mapping[0] = PCM_CHANNEL_FC;
 		channel_mapping[1] = PCM_CHANNEL_FL;
 		channel_mapping[2] = PCM_CHANNEL_FR;
 		channel_mapping[3] = PCM_CHANNEL_LB;
 		channel_mapping[4] = PCM_CHANNEL_RB;
 		channel_mapping[5] = PCM_CHANNEL_LFE;
+		channel_mapping[6] = PCM_CHANNEL_FLC;
+		channel_mapping[7] = PCM_CHANNEL_FRC;
 	} else {
 		pr_err("%s: ERROR.unsupported num_ch = %u\n", __func__,
 				channels);
@@ -2618,15 +2634,16 @@ fail_cmd:
 	return -EINVAL;
 }
 
-int q6asm_media_format_block_multi_ch_pcm(struct audio_client *ac,
-				uint32_t rate, uint32_t channels)
+int q6asm_media_format_block_multi_ch_pcm_format_support(
+			struct audio_client *ac, uint32_t rate,
+			uint32_t channels, uint16_t bit_width)
 {
 	struct asm_stream_media_format_update fmt;
 	u8 *channel_mapping;
 	int rc = 0;
 
-	pr_debug("%s:session[%d]rate[%d]ch[%d]\n", __func__, ac->session, rate,
-		channels);
+	pr_debug("%s:session[%d]rate[%d]ch[%d]bit_width[%d]\n", __func__,
+				ac->session, rate, channels, bit_width);
 
 	q6asm_add_hdr(ac, &fmt.hdr, sizeof(fmt), TRUE);
 
@@ -2635,7 +2652,7 @@ int q6asm_media_format_block_multi_ch_pcm(struct audio_client *ac,
 	fmt.format = MULTI_CHANNEL_PCM;
 	fmt.cfg_size = sizeof(struct asm_multi_channel_pcm_fmt_blk);
 	fmt.write_cfg.multi_ch_pcm_cfg.num_channels = channels;
-	fmt.write_cfg.multi_ch_pcm_cfg.bits_per_sample = 16;
+	fmt.write_cfg.multi_ch_pcm_cfg.bits_per_sample = bit_width;
 	fmt.write_cfg.multi_ch_pcm_cfg.sample_rate = rate;
 	fmt.write_cfg.multi_ch_pcm_cfg.is_signed = 1;
 	fmt.write_cfg.multi_ch_pcm_cfg.is_interleaved = 1;

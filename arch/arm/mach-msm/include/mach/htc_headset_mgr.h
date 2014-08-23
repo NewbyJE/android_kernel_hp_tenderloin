@@ -131,7 +131,7 @@
 #define HS_DELAY_BUTTON			500
 #define HS_DELAY_1WIRE_BUTTON		800
 #define HS_DELAY_1WIRE_BUTTON_SHORT	20
-#define HS_DELAY_IRQ_INIT		(10 * HS_DELAY_SEC)
+#define HS_DELAY_IRQ_INIT		(15 * HS_DELAY_SEC)
 
 #define HS_JIFFIES_ZERO			msecs_to_jiffies(HS_DELAY_ZERO)
 #define HS_JIFFIES_MIC_BIAS		msecs_to_jiffies(HS_DELAY_MIC_BIAS)
@@ -193,9 +193,7 @@ enum {
 enum {
 	GOOGLE_USB_AUDIO_UNPLUG	= 0,
 	GOOGLE_USB_AUDIO_ANLG	= 1,
-#ifdef CONFIG_SUPPORT_USB_SPEAKER
 	GOOGLE_USB_AUDIO_DGTL	= 2,
-#endif
 };
 
 enum {
@@ -215,6 +213,8 @@ enum {
 	HEADSET_REG_1WIRE_READ_KEY,
 	HEADSET_REG_1WIRE_DEINIT,
 	HEADSET_REG_1WIRE_REPORT_TYPE,
+	HEADSET_REG_1WIRE_OPEN,
+	HEADSET_REG_HS_INSERT,
 };
 
 enum {
@@ -241,9 +241,7 @@ enum {
 	H2W_TVOUT		= 6,
 	USB_NO_HEADSET		= 7,
 	USB_AUDIO_OUT		= 8,
-#ifdef CONFIG_SUPPORT_USB_SPEAKER
 	USB_AUDIO_OUT_DGTL	= 9,
-#endif
 };
 
 struct hs_rpc_server_args_key {
@@ -292,6 +290,8 @@ struct hs_notifier_func {
 	int (*hs_1wire_read_key)(void);
 	int (*hs_1wire_deinit)(void);
 	int (*hs_1wire_report_type)(char **);
+	int (*hs_1wire_open)(void);
+	int (*hs_insert)(int);
 };
 
 struct htc_headset_mgr_platform_data {

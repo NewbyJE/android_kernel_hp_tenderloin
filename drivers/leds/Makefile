@@ -23,7 +23,6 @@ obj-$(CONFIG_LEDS_PM8XXX)		+= leds-pm8xxx-htc.o
 else
 obj-$(CONFIG_LEDS_PM8XXX)		+= leds-pm8xxx.o
 endif
-obj-$(CONFIG_LEDS_PM8921)               += leds-pm8921.o
 obj-$(CONFIG_LEDS_PM8038)		+= leds-pm8038.o
 obj-$(CONFIG_LEDS_QPNP)			+= leds-qpnp.o
 obj-$(CONFIG_LEDS_GPIO_REGISTER)	+= leds-gpio-register.o
@@ -61,7 +60,6 @@ obj-$(CONFIG_LEDS_PMIC_MPP)		+= leds-pmic-mpp.o
 obj-$(CONFIG_LEDS_QCIBL)		+= leds-qci-backlight.o
 obj-$(CONFIG_LEDS_MSM_PDM)		+= leds-msm-pdm.o
 obj-$(CONFIG_LEDS_MSM_TRICOLOR)		+= leds-msm-tricolor.o
-obj-$(CONFIG_MICROP_COMMON)		+= leds-microp.o
 obj-$(CONFIG_LEDS_LM8502)		+= leds-lm8502.o
 
 # LED SPI Drivers
@@ -78,3 +76,4 @@ obj-$(CONFIG_LEDS_TRIGGER_SLEEP)	+= ledtrig-sleep.o
 
 # Flashlight Drivers
 obj-$(CONFIG_FLASHLIGHT_TPS61310)	+= tps61310_flashlight.o
+obj-$(CONFIG_FLASHLIGHT_AAT)		+= aat_flashlight.o

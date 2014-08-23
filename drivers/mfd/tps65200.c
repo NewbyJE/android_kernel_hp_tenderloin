@@ -22,7 +22,7 @@
 #include <linux/irq.h>
 #include <linux/gpio.h>
 #include <linux/workqueue.h>
-#include <linux/tps65200.h>
+#include <linux/mfd/tps65200.h>
 #include <linux/power_supply.h>
 #include <linux/spinlock.h>
 #include <linux/wakelock.h>

@@ -23,9 +23,9 @@
 #include <linux/uaccess.h>
 #include <linux/miscdevice.h>
 #include <linux/module.h>
-#include <media/msm_camera.h>
+#include <media/msm_camera-tenderloin.h>
 #include <mach/gpio.h>
-#include <mach/camera.h>
+#include <mach/camera-tenderloin.h>
 
 #include "mt9m113.h"
 

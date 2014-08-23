@@ -168,6 +168,11 @@ static unsigned int pyramid_wifi_status(struct device *dev)
 	return pyramid_wifi_cd;
 }
 
+static u32 pyramid_wifi_setup_power(struct device *dv, unsigned int vdd)
+{
+  return 0;
+}
+
 static struct mmc_platform_data pyramid_wifi_data = {
         .ocr_mask               = MMC_VDD_28_29,
         .status                 = pyramid_wifi_status,
@@ -177,7 +182,8 @@ static struct mmc_platform_data pyramid_wifi_data = {
         .msmsdcc_fmin   = 400000,
         .msmsdcc_fmid   = 24000000,
         .msmsdcc_fmax   = 48000000,
-        .nonremovable   = 0,
+        .nonremovable   = 1,
+	.translate_vdd  = pyramid_wifi_setup_power,
 	// .pclk_src_dfab	= 1,
 	//.cfg_mpm_sdiowakeup = msm_sdcc_cfg_mpm_sdiowakeup,
 	// HTC_WIFI_MOD, temp remove dummy52
@@ -229,7 +235,7 @@ int pyramid_wifi_reset(int on)
 	return 0;
 }
 
-int __init pyramid_init_mmc()
+int __init pyramid_init_wifi_mmc(void)
 {
 	uint32_t id;
 	wifi_status_cb = NULL;

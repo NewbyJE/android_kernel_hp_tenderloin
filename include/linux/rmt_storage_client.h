@@ -11,10 +11,6 @@
  *
  */
 
-#if defined(CONFIG_ARCH_MSM7X30)
-#include "rmt_storage_client-7x30.h"
-#endif
-
 #ifndef __RMT_STORAGE_SERVER_H
 #define __RMT_STORAGE_SERVER_H
 

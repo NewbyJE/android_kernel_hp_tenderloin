@@ -4017,7 +4017,7 @@ static int tabla_volatile(struct snd_soc_codec *ssc, unsigned int reg)
 	return 0;
 }
 
-#define TABLA_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FORMAT_S24_LE)
+#define TABLA_FORMATS (SNDRV_PCM_FMTBIT_S16_LE)
 static int tabla_write(struct snd_soc_codec *codec, unsigned int reg,
 	unsigned int value)
 {

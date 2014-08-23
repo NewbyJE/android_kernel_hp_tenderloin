@@ -34,6 +34,7 @@ config ARCH_MSM7X27
 	select MULTI_IRQ_HANDLER
 	select MSM_PROC_COMM_REGULATOR
 	select CLEANCACHE
+	select QCACHE
 	select MSM_PM2 if PM
 	select MSM_RUN_QUEUE_STATS if MSM_SOC_REV_A
 	select DONT_MAP_HOLE_AFTER_MEMBANK0
@@ -47,7 +48,7 @@ config ARCH_MSM7X30
 	select CPU_V7
 	select GPIO_MSM_V1
 	select MSM_REMOTE_SPINLOCK_DEKKERS
-	select ARCH_SPARSEMEM_ENABLE if !MACH_HTC
+	select ARCH_SPARSEMEM_ENABLE
 	select ARCH_HAS_HOLES_MEMORYMODEL
 	select MIGRATION
 	select MSM_GPIOMUX
@@ -157,11 +158,12 @@ config ARCH_MSM8960
 	select MSM_SPM_V2
 	select MSM_L2_SPM
 	select MSM_NATIVE_RESTART
-	select DONT_MAP_HOLE_AFTER_MEMBANK0
+	select DONT_MAP_HOLE_AFTER_MEMBANK0 if !MACH_HTC
 	select MSM_REMOTE_SPINLOCK_SFPB
-	select ARCH_SPARSEMEM_ENABLE
+	select ARCH_SPARSEMEM_ENABLE if !MACH_HTC
 	select ARCH_HAS_HOLES_MEMORYMODEL
 	select CLEANCACHE
+	select QCACHE
 	select MSM_MULTIMEDIA_USE_ION
 	select MULTI_IRQ_HANDLER
 	select MSM_PM8X60 if PM
@@ -235,6 +237,7 @@ config ARCH_APQ8064
 	select CPU_HAS_L2_PMU
 	select HOLES_IN_ZONE if SPARSEMEM
 	select CLEANCACHE
+	select QCACHE
 	select MIGHT_HAVE_PCI
 	select ARCH_SUPPORTS_MSI
 	select ARM_HAS_SG_CHAIN
@@ -674,12 +677,6 @@ config MACH_MSM7X30_FLUID
        help
          Support for the Qualcomm MSM7x30 FLUID eval board.
 
-config ARCH_MSM7X30_SMD
-       bool "Support QCT 7X30 SMD function"
-       default n
-       help
-         For QCT SMD function, we need 7x30 rpcrouter and smd drivers.
-
 config MACH_SAPPHIRE
 	depends on ARCH_MSM7X01A
 	default n
@@ -941,13 +938,15 @@ config MSM_STACKED_MEMORY
 	  memory.  When present this memory bank is used for a high speed
 	  shared memory interface.  When not present regular RAM is used.
 
-if !MACH_HTC && !MACH_HP
 config PHYS_OFFSET
 	hex
 	default "0x40800000" if ARCH_MSM9615
-	default "0x80200000" if ARCH_APQ8064
+	default "0x80600000" if ARCH_APQ8064 && MACH_HTC
+	default "0x80200000" if ARCH_APQ8064 && !MACH_HTC
+	default "0x80600000" if MACH_M4_UL && MACH_HTC
+	default "0x80400000" if ARCH_MSM8960 && MACH_HTC
+	default "0x80200000" if ARCH_MSM8960 && !MACH_HTC
 	default "0x80200000" if ARCH_MSM8930
-	default "0x80200000" if ARCH_MSM8960
 	default "0x00000000" if ARCH_MSM8974
 	default "0x00000000" if ARCH_MPQ8092
 	default "0x00000000" if ARCH_MSM8226
@@ -956,17 +955,9 @@ config PHYS_OFFSET
 	default "0x00200000" if !MSM_STACKED_MEMORY
 	default "0x00000000" if ARCH_QSD8X50 && MSM_SOC_REV_A
 	default "0x20000000" if ARCH_QSD8X50
-	default "0x40200000" if ARCH_MSM8X60
+	default "0x48000000" if ARCH_MSM8X60 && MACH_HTC
+	default "0x40200000" if ARCH_MSM8X60 && !MACH_HTC
 	default "0x10000000"
-endif
-
-if MACH_HTC
-source "arch/arm/mach-msm/htc/Kconfig.offsets"
-endif
-
-if MACH_HP
-source "arch/arm/mach-msm/hp/Kconfig.offsets"
-endif
 
 config KERNEL_MSM_CONTIG_MEM_REGION
 	bool "Enable in-kernel contiguous memory region"
@@ -997,7 +988,6 @@ config MSM_AMSS_VERSION
 	default 6210 if MSM_AMSS_VERSION_6210
 	default 6220 if MSM_AMSS_VERSION_6220
 	default 6225 if MSM_AMSS_VERSION_6225
-	default 1200 if MSM_AMSS_VERSION_1200
 
 choice
 	prompt "AMSS modem firmware version"
@@ -1012,10 +1002,6 @@ choice
 
 	config MSM_AMSS_VERSION_6225
 		bool "6.2.20 + New ADSP"
-
-	config MSM_AMSS_VERSION_1200
-		bool "1.2.00"
-
 endchoice
 
 config MSM_HAS_DEBUG_UART_HS
@@ -1575,23 +1561,6 @@ config MSM_RMT_STORAGE_CLIENT_STATS
 	  Collects performance statistics and shows this information
 	  through a debugfs file rmt_storage_stats.
 
-config MSM_RMT_STORAGE_SERVER
-	depends on (ARCH_MSM && MSM_ONCRPCROUTER)
-	default n
-	bool "Remote Storage RPC client"
-	help
-	  Provide RPC mechanism for remote processors to access storage
-	  device on apps processor.
-
-config MSM_SDIO_SMEM
-        depends on MSM_SDIO_AL
-        default n
-        bool "SDIO SMEM for remote storage"
-        help
-          Copies data from remote MDM9K memory to local MSM8x60
-	  memory. Used by remote storage client to shadow
-	  MDM9K filesystem.
-
 config MSM_DALRPC
 	bool "DAL RPC support"
 	default n
@@ -1604,6 +1573,21 @@ config MSM_DALRPC_TEST
 	default m
 	help
 	  Exercises DAL RPC calls to QDSP6.
+
+config MSM_MPDEC
+	bool "Enable kernel based mpdecision"
+	depends on MSM_SMP
+	default n
+	help
+	  This enables kernel based multi core control.
+	  (up/down hotplug based on load)
+
+config MSM_MPDEC_INPUTBOOST_CPUMIN
+	bool "Enable kernel based mpdecision"
+	depends on MSM_MPDEC
+	default n
+	help
+	  This pushes the cpu min speed to predefined values on input events.
 
 if CPU_FREQ_MSM
 
@@ -1694,13 +1678,6 @@ config MSM_QDSP6
 	  Enable support for qdsp6. This provides audio and video functionality.
 
 config MSM8X60_AUDIO
-	tristate "MSM8X60 audio support"
-	depends on ARCH_MSM8X60 && ANDROID_PMEM
-	default y
-	help
-	  Enable support for qdsp6v2. This provides audio functionality.
-
-config MSM8X60_AUDIO_1X
 	tristate "MSM8X60 audio support"
 	depends on ARCH_MSM8X60 && ANDROID_PMEM
 	default y
@@ -1902,20 +1879,6 @@ config MSM_SYSMON_COMM
 	  provides an API that may be used for notifying subsystems within
 	  the SoC about other subsystems' power-up/down state-changes.
 
-config SMD_OFFSET_TCXO_STAT
-	depends on MSM_SMD
-	hex "SMD offset of total TCXO-off time"
-	default 0x0
-	help
-          TCXO off time is in tick of sleep clock, 1/32768.
-
-config SMD_OFFSET_NEGATE_CLIENT_STAT
-        depends on MSM_SMD
-	hex "SMD offset of negate clinet stat"
-        default 0x0
-        help
-          TCXO shutdown retry conuter and negate tcxoc client counters.
-
 config MSM_PIL
 	bool "Peripheral image loading"
 	select FW_LOADER
@@ -1938,6 +1901,12 @@ config MSM_PIL_QDSP6V3
 	help
 	  Support for booting and shutting down QDSP6v3 processors (hexagon).
 	  The QDSP6 is a low power DSP used in audio software applications.
+
+config MSM_INSECURE_PIL_QDSP6V3
+	bool "Force QDSP6v3 PIL to insecure mode"
+	depends on MSM_PIL_QDSP6V3
+	help
+	  Force Riva PIL to use non-secure boot.
 
 config MSM_PIL_QDSP6V4
 	tristate "QDSP6v4 (Hexagon) Boot Support"
@@ -2671,14 +2640,13 @@ config MSM_UARTDM
 	help
 	  Provides access to the high speed uart ports.
 
-config REMOVE_EBI1_FIXED_CLK
-	bool "remove ebi1 fixed clk"
-	default n
-	help
-		use for 2x Radio
-
 config REMOVE_SMI_2X_CLK
        bool "remove 2x_axi_clk for SMI"
+       default n
+
+config L2_FREQ_FIXUP
+       bool "Some msm8x60 doesn't like low freqs"
+       depends on ARCH_MSM8X60
        default n
 
 endif

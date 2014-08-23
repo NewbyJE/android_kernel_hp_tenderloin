@@ -193,9 +193,9 @@ struct tag {
 		struct tag_videolfb	videolfb;
 		struct tag_cmdline	cmdline;
 #ifdef CONFIG_MACH_HTC
-		struct tag_als_kadc als_kadc;
+		struct tag_als_kadc	als_kadc;
 		struct tag_bldr_log	bldr_log;
-		struct tag_last_bldr_log last_bldr_log;
+		struct tag_last_bldr_log	last_bldr_log;
 		struct tag_batt_data	batt_data;
 #endif
 
@@ -264,18 +264,6 @@ extern struct meminfo meminfo;
 extern int arm_add_memory(phys_addr_t start, unsigned long size);
 extern void early_print(const char *str, ...);
 extern void dump_machine_table(void);
-
-/*
- * Early command line parameters.
- */
-struct early_params {
-	const char *arg;
-	void (*fn)(char **p);
-};
-
-#define __early_param(name,fn)					\
-static struct early_params __early_##fn __used			\
-__attribute__((__section__(".early_param.init"))) = { name, fn }
 
 #endif  /*  __KERNEL__  */
 

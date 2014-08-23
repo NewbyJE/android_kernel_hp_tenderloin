@@ -167,7 +167,6 @@ int pm8xxx_batt_alarm_pwm_rate_set(int use_pwm, int clock_scaler,
 int pm8xxx_batt_alarm_state_set(int enable_lower_comparator,
 				int enable_upper_comparator);
 
-
 /**
  * pm8xxx_batt_lower_alarm_register_notifier - register notifier for
  *					       htc_gauge

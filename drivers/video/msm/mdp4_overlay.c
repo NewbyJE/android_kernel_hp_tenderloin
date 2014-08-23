@@ -810,11 +810,6 @@ void mdp4_overlay_rgb_setup(struct mdp4_overlay_pipe *pipe)
 	uint32 offset = 0;
 	int pnum;
 
-#ifdef CONFIG_MACH_TENDERLOIN
-	pipe->op_mode |= MDP4_OP_FLIP_LR;
-	pipe->op_mode |= MDP4_OP_FLIP_UD;
-#endif
-
 	pnum = pipe->pipe_num - OVERLAY_PIPE_RGB1; /* start from 0 */
 	rgb_base = MDP_BASE + MDP4_RGB_BASE;
 	rgb_base += (MDP4_RGB_OFF * pnum);
@@ -841,7 +836,7 @@ void mdp4_overlay_rgb_setup(struct mdp4_overlay_pipe *pipe)
 	pipe->op_mode |= MDP4_OP_IGC_LUT_EN;
 #endif
 
-#ifdef CONIG_MACH_TENDERLOIN
+#ifdef CONFIG_MACH_TENDERLOIN
 	pipe->op_mode |= MDP4_OP_FLIP_LR;
 	pipe->op_mode |= MDP4_OP_FLIP_UD;
 #endif
@@ -1058,13 +1053,8 @@ void mdp4_overlay_vg_setup(struct mdp4_overlay_pipe *pipe)
 	outpdw(vg_base + 0x0008, dst_size);	/* MDP_RGB_DST_SIZE */
 	outpdw(vg_base + 0x000c, dst_xy);	/* MDP_RGB_DST_XY */
 
-	/* TILE frame size */
-	if (pipe->frame_format != MDP4_FRAME_FORMAT_LINEAR) {
-		if (ctrl->panel_mode & MDP4_PANEL_DSI_CMD)
-			outpdw(vg_base + 0x0048, frame_size);
-		else
-			pipe->frame_size = frame_size;
-	}
+	if (pipe->frame_format != MDP4_FRAME_FORMAT_LINEAR)
+		outpdw(vg_base + 0x0048, frame_size);	/* TILE frame size */
 
 	/*
 	 * Adjust src X offset to avoid MDP from overfetching pixels
@@ -2766,11 +2756,6 @@ static int mdp4_overlay_req2pipe(struct mdp_overlay *req, int mixer,
 
 	pipe->transp = req->transp_mask;
 
-	if ((pipe->flags & MDP_SECURE_OVERLAY_SESSION) &&
-		(!(req->flags & MDP_SECURE_OVERLAY_SESSION))) {
-		pr_err("%s Switch secure %d", __func__, pipe->pipe_ndx);
-		mfd->sec_active = FALSE;
-	}
 	pipe->flags = req->flags;
 
 	*ppipe = pipe;
@@ -2904,11 +2889,7 @@ static int mdp4_calc_req_mdp_clk(struct msm_fb_data_type *mfd,
 	 * factor. Ideally this factor is passed from board file.
 	 */
 	if (rst < pclk) {
-#ifdef CONFIG_ARCH_MSM8X60 // Temp workaround while we figure this out
-                rst = ((pclk >> shift) * 2) << shift;
-#else
-                rst = ((pclk >> shift) * 23 / 20) << shift;
-#endif
+		rst = ((pclk >> shift) * 23 / 20) << shift;
 		pr_debug("%s calculated mdp clk is less than pclk.\n",
 			__func__);
 	}
@@ -3805,24 +3786,6 @@ void mdp4_overlay_dma_commit(int mixer)
 	* non double buffer register update here
 	* perf level, new clock rate should be done here
 	*/
-	struct mdp4_overlay_pipe *pipe;
-	char *vg_base;
-	int i, pnum;
-	for (i = 0; i < OVERLAY_PIPE_MAX; i++, pipe++) {
-		pipe = ctrl->stage[mixer][i];
-		if (pipe) {
-			if (pipe->pipe_type == OVERLAY_TYPE_VIDEO &&
-						(pipe->frame_format !=
-						MDP4_FRAME_FORMAT_LINEAR) &&
-						pipe->frame_size) {
-				pnum = pipe->pipe_num - OVERLAY_PIPE_VG1;
-				vg_base = MDP_BASE + MDP4_VIDEO_BASE;
-				vg_base += (MDP4_VIDEO_OFF * pnum);
-				outpdw(vg_base + 0x0048, pipe->frame_size);
-				pipe->frame_size = 0;
-			}
-		}
-	}
 }
 
 /*

@@ -230,6 +230,9 @@ struct afe_port_mi2s_cfg {
 				/* 1, word select signal from internal source */
 	u16	format;	/* don't touch this field if it is not for */
 				/* AFE_PORT_CMD_I2S_CONFIG opcode */
+#ifdef CONFIG_MACH_TENDERLOIN
+	u32	reserved;
+#endif
 } __attribute__ ((packed));
 
 struct afe_port_hdmi_cfg {
@@ -570,7 +573,6 @@ struct adm_copp_open_command {
 #define ADM_CMD_COPP_CLOSE                               0x00010305
 
 #define ADM_CMD_MULTI_CHANNEL_COPP_OPEN                  0x00010310
-#define ADM_CMD_MULTI_CHANNEL_COPP_OPEN_V2               0x00010319
 #define ADM_CMD_MULTI_CHANNEL_COPP_OPEN_V3               0x00010333
 struct adm_multi_ch_copp_open_command {
 	struct apr_hdr hdr;
@@ -584,6 +586,21 @@ struct adm_multi_ch_copp_open_command {
 	u32 rate;
 	u8 dev_channel_mapping[8];
 } __packed;
+
+#define ADM_CMD_MULTI_CHANNEL_COPP_OPEN_V2               0x00010319
+struct adm_multi_ch_copp_open_command_v2 {
+	struct apr_hdr hdr;
+	u16 flags;
+	u16 mode; /* 1-RX, 2-Live TX, 3-Non Live TX */
+	u16 endpoint_id1;
+	u16 endpoint_id2;
+	u32 topology_id;
+	u16 channel_config;
+	u16 bit_width;
+	u32 rate;
+	u8 dev_channel_mapping[8];
+} __packed;
+
 #define ADM_CMD_MEMORY_MAP				0x00010C30
 struct adm_cmd_memory_map{
 	struct apr_hdr	hdr;
@@ -1199,7 +1216,6 @@ struct asm_stream_cmd_open_read_compressed {
 } __packed;
 
 #define ASM_STREAM_CMD_OPEN_WRITE                        0x00010BCA
-#define ASM_STREAM_CMD_OPEN_WRITE_V2                     0x00010D8F
 #define ASM_STREAM_CMD_OPEN_WRITE_V2_1                   0x00010DB1
 struct asm_stream_cmd_open_write {
 	struct apr_hdr hdr;
@@ -1209,6 +1225,16 @@ struct asm_stream_cmd_open_write {
 	u32            post_proc_top;
 	u32            format;
 } __attribute__((packed));
+
+#define ASM_STREAM_CMD_OPEN_WRITE_V2                     0x00010D8F
+struct asm_stream_cmd_open_write_v2 {
+	struct apr_hdr hdr;
+	u32            uMode;
+	u16            sink_endpoint;
+	u16            bits_per_sample;
+	u32            post_proc_top;
+	u32            format;
+} __packed;
 
 #define IEC_61937_MASK	0x00000001
 #define IEC_60958_MASK	0x00000002

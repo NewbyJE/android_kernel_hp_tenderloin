@@ -22,9 +22,12 @@
 #include <linux/regulator/consumer.h>
 #include <mach/gpio.h>
 #include <mach/board.h>
+#ifdef CONFIG_MACH_TENDERLOIN
+#include <mach/camera-tenderloin.h>
+#else
 #include <mach/camera.h>
+#endif
 #include <mach/vreg.h>
-#include <mach/camera.h>
 #include <mach/clk.h>
 #include <mach/msm_bus.h>
 #include <mach/msm_bus_board.h>

@@ -336,6 +336,7 @@ int mipi_dsi_clk_div_config(uint8 bpp, uint8 lanes,
 					((pll_divider_config.dsi_clk_divider)
 					* (mnd_entry->pclk_n)));
 	}
+        *expected_dsi_pclk *= 2;
 	return 0;
 }
 
@@ -470,6 +471,7 @@ void mipi_dsi_clk_enable(void)
 	}
 	MIPI_OUTP(MIPI_DSI_BASE + 0x0200, pll_ctrl | 0x01);
 	mb();
+        msleep(1);
 
 	if (clk_set_rate(dsi_byte_div_clk, 1) < 0)	/* divided by 1 */
 		pr_err("%s: clk_set_rate failed\n",	__func__);

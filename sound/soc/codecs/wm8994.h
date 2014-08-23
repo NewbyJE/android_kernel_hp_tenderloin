@@ -15,8 +15,6 @@
 
 #include "wm_hubs.h"
 
-extern struct snd_soc_dai_driver wm8994_dai[];
-
 /* Sources for AIF1/2 SYSCLK - use with set_dai_sysclk() */
 #define WM8994_SYSCLK_MCLK1 1
 #define WM8994_SYSCLK_MCLK2 2

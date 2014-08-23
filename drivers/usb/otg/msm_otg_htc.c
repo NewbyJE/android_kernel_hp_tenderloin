@@ -50,6 +50,10 @@
 #include <mach/board.h>
 #include <mach/board_htc.h>
 
+#ifdef CONFIG_FORCE_FAST_CHARGE
+#include <linux/fastchg.h>
+#endif
+
 #define MSM_USB_BASE	(motg->regs)
 #define DRIVER_NAME	"msm_otg"
 
@@ -73,6 +77,15 @@ static void send_usb_connect_notify(struct work_struct *w)
 
 	motg->connect_type_ready = 1;
 	USBH_INFO("send connect type %d\n", motg->connect_type);
+#ifdef CONFIG_FORCE_FAST_CHARGE
+	if (motg->connect_type == CONNECT_TYPE_USB) {
+		USB_peripheral_detected = USB_ACC_DETECTED; /* Inform forced fast charge that a USB accessory has been attached */
+		USBH_INFO("USB forced fast charge : USB device currently attached");
+	} else {
+		USB_peripheral_detected = USB_ACC_NOT_DETECTED; /* Inform forced fast charge that a USB accessory has not been attached */
+		USBH_INFO("USB forced fast charge : No USB device currently attached");
+	}
+#endif
 	mutex_lock(&notify_sem);
 	list_for_each_entry(notifier, &g_lh_usb_notifier_list, notifier_link) {
 		if (notifier->func != NULL) {
@@ -149,13 +162,8 @@ static bool is_msm_otg_support_power_collapse(struct msm_otg *motg)
 
 #define ID_TIMER_FREQ		(jiffies + msecs_to_jiffies(500))
 #define ULPI_IO_TIMEOUT_USEC	(10 * 1000)
-#ifdef CONFIG_ARCH_MSM8X60
-#define USB_PHY_3P3_VOL_MIN	3450000 /* uV */
-#define USB_PHY_3P3_VOL_MAX	3450000 /* uV */
-#else
 #define USB_PHY_3P3_VOL_MIN	3050000 /* uV */
 #define USB_PHY_3P3_VOL_MAX	3300000 /* uV */
-#endif
 #define USB_PHY_3P3_HPM_LOAD	50000	/* uA */
 #define USB_PHY_3P3_LPM_LOAD	4000	/* uA */
 
@@ -658,6 +666,10 @@ static int msm_otg_reset(struct usb_phy *phy)
 	u32 ulpi_val = 0;
 	USBH_INFO("%s\n", __func__);
 
+#ifdef CONFIG_FORCE_FAST_CHARGE
+	USB_porttype_detected = NO_USB_DETECTED; /* No USB plugged, clear fast charge detected port value */
+#endif
+
 	/*
 	 * USB PHY and Link reset also reset the USB BAM.
 	 * Thus perform reset operation only once to avoid
@@ -974,8 +986,7 @@ static int msm_otg_suspend(struct msm_otg *motg)
 
 	if (motg->pdata->phy_type == CI_45NM_INTEGRATED_PHY) {
 		ulpi_read(phy, 0x14);
-		if (pdata->otg_control == OTG_PHY_CONTROL ||
-                    pdata->otg_control == OTG_PMIC_CONTROL)
+		if (pdata->otg_control == OTG_PHY_CONTROL)
 			ulpi_write(phy, 0x01, 0x30);
 		ulpi_write(phy, 0x08, 0x09);
 	}
@@ -1071,9 +1082,7 @@ static int msm_otg_suspend(struct msm_otg *motg)
 		motg->lpm_flags |= PHY_PWR_COLLAPSED;
 	}
 
-	if ((motg->lpm_flags & PHY_RETENTIONED) ||
-            (motg->pdata->phy_type == CI_45NM_INTEGRATED_PHY &&
-             !host_bus_suspend && !device_bus_suspend && !dcp)) {
+	if (motg->lpm_flags & PHY_RETENTIONED) {
 		msm_hsusb_config_vddcx(0);
 		msm_hsusb_mhl_switch_enable(motg, 0);
 	}
@@ -1147,11 +1156,6 @@ static int msm_otg_resume(struct msm_otg *motg)
 		motg->lpm_flags &= ~PHY_PWR_COLLAPSED;
 		USBH_DEBUG("exit phy power collapse...\n");
 	}
-
-        if (motg->pdata->phy_type == CI_45NM_INTEGRATED_PHY) {
-		msm_hsusb_mhl_switch_enable(motg, 1);
-		msm_hsusb_config_vddcx(1);
-        }
 
 	if (motg->lpm_flags & PHY_RETENTIONED) {
 		msm_hsusb_mhl_switch_enable(motg, 1);
@@ -1263,11 +1267,8 @@ static int msm_otg_notify_chg_type(struct msm_otg *motg)
 		charger_type = POWER_SUPPLY_TYPE_USB_ACA;
 	else
 		charger_type = POWER_SUPPLY_TYPE_BATTERY;
-#ifdef CONFIG_MFD_PM8921_CORE
-        return pm8921_set_usb_power_supply_type(charger_type);
-#else
-        return 0;
-#endif
+
+	return pm8921_set_usb_power_supply_type(charger_type);
 }
 
 static int msm_otg_notify_power_supply(struct msm_otg *motg, unsigned mA)
@@ -2241,6 +2242,27 @@ static void msm_chg_detect_work(struct work_struct *w)
 		msm_chg_enable_aca_intr(motg);
 		USBH_INFO("chg_type = %s\n",
 			chg_to_string(motg->chg_type));
+
+#ifdef CONFIG_FORCE_FAST_CHARGE
+		switch (motg->chg_type) {
+		case USB_SDP_CHARGER:		USB_porttype_detected = USB_SDP_DETECTED;
+						break;
+		case USB_DCP_CHARGER:		USB_porttype_detected = USB_DCP_DETECTED;
+						break;
+		case USB_CDP_CHARGER:		USB_porttype_detected = USB_CDP_DETECTED;
+						break;
+		case USB_ACA_A_CHARGER:		USB_porttype_detected = USB_ACA_A_DETECTED;
+						break;
+		case USB_ACA_B_CHARGER:		USB_porttype_detected = USB_ACA_B_DETECTED;
+						break;
+		case USB_ACA_C_CHARGER:		USB_porttype_detected = USB_ACA_C_DETECTED;
+						break;
+		case USB_ACA_DOCK_CHARGER:	USB_porttype_detected = USB_ACA_DOCK_DETECTED;
+						break;
+		default:			USB_porttype_detected = USB_INVALID_DETECTED;
+						break;
+		}
+#endif
 		queue_work(system_nrt_wq, &motg->sm_work);
 		queue_work(motg->usb_wq, &motg->notifier_work);
 		return;

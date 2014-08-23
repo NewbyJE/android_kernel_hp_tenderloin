@@ -70,11 +70,6 @@ int srs_trumedia_open(int port_id, int srs_tech_id, void *srs_params)
 		sz = sizeof(struct asm_pp_params_command) +
 			sizeof(struct srs_trumedia_params_GLOBAL);
 		open = kzalloc(sz, GFP_KERNEL);
-		if (!open) {
-			pr_err("%s, adm params memory alloc failed\n",
-				__func__);
-			return -ENOMEM;
-		}
 		open->payload_size = sizeof(struct srs_trumedia_params_GLOBAL) +
 					sizeof(struct asm_pp_param_data_hdr);
 		open->params.param_id = SRS_TRUMEDIA_PARAMS;
@@ -98,11 +93,6 @@ int srs_trumedia_open(int port_id, int srs_tech_id, void *srs_params)
 		sz = sizeof(struct asm_pp_params_command) +
 			sizeof(struct srs_trumedia_params_WOWHD);
 		open = kzalloc(sz, GFP_KERNEL);
-		 if (!open) {
-			pr_err("%s, adm params memory alloc failed\n",
-				__func__);
-			return -ENOMEM;
-		}
 		open->payload_size = sizeof(struct srs_trumedia_params_WOWHD) +
 					sizeof(struct asm_pp_param_data_hdr);
 		open->params.param_id = SRS_TRUMEDIA_PARAMS_WOWHD;
@@ -127,11 +117,6 @@ int srs_trumedia_open(int port_id, int srs_tech_id, void *srs_params)
 		sz = sizeof(struct asm_pp_params_command) +
 			sizeof(struct srs_trumedia_params_CSHP);
 		open = kzalloc(sz, GFP_KERNEL);
-		 if (!open) {
-			pr_err("%s, adm params memory alloc failed\n",
-			__func__);
-			return -ENOMEM;
-		}
 		open->payload_size = sizeof(struct srs_trumedia_params_CSHP) +
 					sizeof(struct asm_pp_param_data_hdr);
 		open->params.param_id = SRS_TRUMEDIA_PARAMS_CSHP;
@@ -155,11 +140,6 @@ int srs_trumedia_open(int port_id, int srs_tech_id, void *srs_params)
 		sz = sizeof(struct asm_pp_params_command) +
 			sizeof(struct srs_trumedia_params_HPF);
 		open = kzalloc(sz, GFP_KERNEL);
-		 if (!open) {
-			pr_err("%s, adm params memory alloc failed\n",
-				 __func__);
-			return -ENOMEM;
-		}
 		open->payload_size = sizeof(struct srs_trumedia_params_HPF) +
 					sizeof(struct asm_pp_param_data_hdr);
 		open->params.param_id = SRS_TRUMEDIA_PARAMS_HPF;
@@ -178,11 +158,6 @@ int srs_trumedia_open(int port_id, int srs_tech_id, void *srs_params)
 		sz = sizeof(struct asm_pp_params_command) +
 			sizeof(struct srs_trumedia_params_PEQ);
 		open = kzalloc(sz, GFP_KERNEL);
-		 if (!open) {
-			pr_err("%s, adm params memory alloc failed\n",
-				__func__);
-			return -ENOMEM;
-		}
 		open->payload_size = sizeof(struct srs_trumedia_params_PEQ) +
 					sizeof(struct asm_pp_param_data_hdr);
 		open->params.param_id = SRS_TRUMEDIA_PARAMS_PEQ;
@@ -203,11 +178,6 @@ int srs_trumedia_open(int port_id, int srs_tech_id, void *srs_params)
 		sz = sizeof(struct asm_pp_params_command) +
 			sizeof(struct srs_trumedia_params_HL);
 		open = kzalloc(sz, GFP_KERNEL);
-		 if (!open) {
-			pr_err("%s, adm params memory alloc failed\n",
-				__func__);
-			return -ENOMEM;
-		}
 		open->payload_size = sizeof(struct srs_trumedia_params_HL) +
 					sizeof(struct asm_pp_param_data_hdr);
 		open->params.param_id = SRS_TRUMEDIA_PARAMS_HL;
@@ -885,7 +855,6 @@ int adm_multi_ch_copp_open(int port_id, int path, int rate, int channel_mode,
           open.topology_id = topology;
 
 		open.channel_config = channel_mode & 0x00FF;
-		open.reserved = 24;
 		open.rate  = rate;
 
 		pr_debug("%s: channel_config=%d port_id=%d rate=%d"
@@ -922,9 +891,9 @@ fail_cmd:
 }
 
 int adm_multi_ch_copp_open_v2(int port_id, int path, int rate, int channel_mode,
-				int topology, int perfmode, uint16_t bit_width)
+				int topology, uint16_t bit_width, int perfmode)
 {
-	struct adm_multi_ch_copp_open_command open;
+	struct adm_multi_ch_copp_open_command_v2 open;
 	int ret = 0;
 	int index;
 
@@ -959,7 +928,7 @@ int adm_multi_ch_copp_open_v2(int port_id, int path, int rate, int channel_mode,
 				APR_HDR_LEN(APR_HDR_SIZE), APR_PKT_VER);
 
 		open.hdr.pkt_size =
-			sizeof(struct adm_multi_ch_copp_open_command);
+			sizeof(struct adm_multi_ch_copp_open_command_v2);
 
 		if (perfmode) {
 			pr_debug("%s Performance mode", __func__);
@@ -1034,18 +1003,17 @@ int adm_multi_ch_copp_open_v2(int port_id, int path, int rate, int channel_mode,
 				rate = 16000;
 		}
 
-		if (open.topology_id  == 0)
-			open.topology_id = topology;
+        if ((open.topology_id  == 0) || (port_id == VOICE_RECORD_RX) || (port_id == VOICE_RECORD_TX))
+          open.topology_id = topology;
 
 		open.channel_config = channel_mode & 0x00FF;
-		open.reserved = bit_width;
+		open.bit_width = bit_width;
 		open.rate  = rate;
 
-		pr_debug("%s: channel_config=%d port_id=%d\n",
-			__func__, open.channel_config,
-			open.endpoint_id1);
-		pr_debug("%s: rate=%d topology_id=0x%X\n",
-			__func__, open.rate, open.topology_id);
+		pr_debug("%s: channel_config=%d port_id=%d rate=%d"
+			" topology_id=0x%X\n", __func__, open.channel_config,
+			open.endpoint_id1, open.rate,
+			open.topology_id);
 
 		atomic_set(&this_adm.copp_stat[index], 0);
 

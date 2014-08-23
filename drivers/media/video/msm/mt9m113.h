@@ -29,7 +29,7 @@
 #define MT9M113_H
 #include <linux/types.h>
 #include <mach/board.h>
-#include <mach/camera.h>
+#include <mach/camera-tenderloin.h>
 
 extern struct mt9m113_reg mt9m113_regs;
 enum mt9m113_width {

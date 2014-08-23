@@ -38,6 +38,7 @@
 #include <asm/thread_notify.h>
 #include <asm/stacktrace.h>
 #include <asm/mach/time.h>
+#include <asm/tls.h>
 
 #ifdef CONFIG_CC_STACKPROTECTOR
 #include <linux/stackprotector.h>
@@ -85,12 +86,6 @@ void enable_hlt(void)
 }
 
 EXPORT_SYMBOL(enable_hlt);
-
-int get_hlt(void)
-{
-	return hlt_counter;
-}
-EXPORT_SYMBOL(get_hlt);
 
 static int __init nohlt_setup(char *__unused)
 {
@@ -565,7 +560,8 @@ copy_thread(unsigned long clone_flags, unsigned long stack_start,
 	clear_ptrace_hw_breakpoint(p);
 
 	if (clone_flags & CLONE_SETTLS)
-		thread->tp_value = regs->ARM_r3;
+		thread->tp_value[0] = childregs->ARM_r3;
+	thread->tp_value[1] = get_tpuser();
 
 	thread_notify(THREAD_NOTIFY_COPY, thread);
 

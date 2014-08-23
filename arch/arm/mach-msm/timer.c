@@ -940,11 +940,12 @@ static u32 notrace msm_read_sched_clock(void)
 	return cs->read(NULL);
 }
 
-int read_current_timer(unsigned long *timer_val)
+static struct delay_timer msm_delay_timer;
+
+static unsigned long msm_read_current_timer(void)
 {
 	struct msm_clock *dgt = &msm_clocks[MSM_CLOCK_DGT];
-	*timer_val = msm_read_timer_count(dgt, GLOBAL_TIMER);
-	return 0;
+	return msm_read_timer_count(dgt, GLOBAL_TIMER);
 }
 
 static void __init msm_sched_clock_init(void)
@@ -1177,7 +1178,9 @@ static void __init msm_timer_init(void)
 	if (is_smp()) {
 		__raw_writel(1,
 			msm_clocks[MSM_CLOCK_DGT].regbase + TIMER_ENABLE);
-		set_delay_fn(read_current_timer_delay_loop);
+		msm_delay_timer.freq = dgt->freq;
+		msm_delay_timer.read_current_timer = &msm_read_current_timer;
+		register_current_timer_delay(&msm_delay_timer);
 	}
 #endif
 

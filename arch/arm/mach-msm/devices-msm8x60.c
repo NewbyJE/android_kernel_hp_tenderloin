@@ -98,6 +98,9 @@
 #define MSM_GSBI10_UARTDM_PHYS	(MSM_GSBI10_PHYS + 0x40000)
 #define MSM_GSBI11_UARTDM_PHYS  (MSM_GSBI11_PHYS + 0x40000)
 
+#define MSM_UART11DM_PHYS    (MSM_GSBI11_PHYS + 0x40000)
+#define INT_UART11DM_IRQ     GSBI11_UARTDM_IRQ
+
 /* PRNG device */
 #define MSM_PRNG_PHYS		0x16C00000
 #define MSM_UART9DM_PHYS    (MSM_GSBI9_PHYS + 0x40000)
@@ -296,6 +299,7 @@ struct platform_device msm_device_uart_dm1 = {
 		.coherent_dma_mask = DMA_BIT_MASK(32),
 	},
 };
+
 #ifdef CONFIG_MACH_TENDERLOIN
 #undef DMOV_HSUART2_TX_CRCI
 #undef DMOV_HSUART2_RX_CRCI
@@ -304,7 +308,6 @@ struct platform_device msm_device_uart_dm1 = {
 #define ADM3_0_B_GSBI10_IN_CRCI		10
 
 #define DMOV_HSUART2_TX_CRCI   ((1 << 4) + ADM3_0_B_GSBI10_OUT_CRCI)
-
 #define DMOV_HSUART2_RX_CRCI   ((1 << 4) + ADM3_0_B_GSBI10_IN_CRCI)
 #endif
 
@@ -383,6 +386,34 @@ struct platform_device msm_device_uart_dm3 = {
 	.id = 2,
 	.num_resources = ARRAY_SIZE(msm_uart3_dm_resources),
 	.resource = msm_uart3_dm_resources,
+};
+
+static struct resource msm_uart11_dm_resources[] = {
+	{
+		.start = MSM_UART11DM_PHYS,
+		.end   = MSM_UART11DM_PHYS + PAGE_SIZE - 1,
+		.name  = "uartdm_resource",
+		.flags = IORESOURCE_MEM,
+	},
+	{
+		.start = INT_UART11DM_IRQ,
+		.end   = INT_UART11DM_IRQ,
+		.flags = IORESOURCE_IRQ,
+	},
+	{
+		/* GSBI 11 is UART_GSBI11 */
+		.start = MSM_GSBI11_PHYS,
+		.end   = MSM_GSBI11_PHYS + PAGE_SIZE - 1,
+		.name  = "gsbi_resource",
+		.flags = IORESOURCE_MEM,
+	},
+};
+
+struct platform_device msm_device_uart_dm11 = {
+	.name = "msm_serial_hsl",
+	.id = 3,
+	.num_resources = ARRAY_SIZE(msm_uart11_dm_resources),
+	.resource = msm_uart11_dm_resources,
 };
 
 static struct resource msm_uart12_dm_resources[] = {
@@ -1659,7 +1690,7 @@ static struct resource msm_mipi_dsi_resources[] = {
 	},
 };
 
-struct platform_device msm_mipi_dsi1_device = {
+static struct platform_device msm_mipi_dsi_device = {
 	.name   = "mipi_dsi",
 	.id     = 1,
 	.num_resources  = ARRAY_SIZE(msm_mipi_dsi_resources),
@@ -1992,7 +2023,7 @@ void __init msm_fb_register_device(char *name, void *data)
 	else if (!strncmp(name, "lcdc", 4))
 		msm_register_device(&msm_lcdc_device, data);
 	else if (!strncmp(name, "mipi_dsi", 8))
-		msm_register_device(&msm_mipi_dsi1_device, data);
+		msm_register_device(&msm_mipi_dsi_device, data);
 #ifdef CONFIG_FB_MSM_TVOUT
 	else if (!strncmp(name, "tvenc", 5))
 		msm_register_device(&msm_tvenc_device, data);
@@ -2039,6 +2070,7 @@ static struct resource resources_hsusb[] = {
 		.flags	= IORESOURCE_IRQ,
 	},
 };
+
 
 static u64 dma_mask = 0xffffffffULL;
 struct platform_device msm_device_gadget_peripheral = {
@@ -3378,3 +3410,9 @@ struct platform_device msm8660_iommu_domain_device = {
 		.platform_data = &msm8660_iommu_domain_pdata,
 	}
 };
+
+struct platform_device msm8660_pm_8x60 = {
+	.name		= "pm-8x60",
+	.id		= -1,
+};
+

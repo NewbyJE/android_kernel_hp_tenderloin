@@ -912,11 +912,6 @@ static irqreturn_t cy8c_ts_irq_thread(int irq, void *ptr)
 				}
 			}
 		}
-		if ((ts->unlock_page) &&
-			((ts->p_finger_count > ts->finger_count) ||
-			(ts->finger_count == 4))) {
-			cy8c_reset_baseline();
-		}
 	} else {
 		ts->finger_count = 0;
 		ts->p_finger_count = 0;
@@ -1180,6 +1175,8 @@ static int cy8c_ts_resume(struct i2c_client *client)
 
 	if (ts->wake)
 		ts->wake();
+
+	msleep(50);
 	ts->suspend = 0;
 
 	if (!i2c_cy8c_read(ts->client, 0x00, buf, 2))

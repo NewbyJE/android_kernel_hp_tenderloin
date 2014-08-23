@@ -14,20 +14,14 @@ obj-$(CONFIG_MACH_JET) += jet/
 # VILLE
 obj-$(CONFIG_MACH_VILLE) += ville/
 
-# TC2
-obj-$(CONFIG_MACH_TC2) += tc2/
+# M7
+obj-$(CONFIG_MACH_M7_UL) += m7/
 
-# OPEARUL
-obj-$(CONFIG_MACH_OPERAUL) += operaul/
-
-# M4_UL
-obj-$(CONFIG_MACH_M4_UL) += m4ul/
+# M4
+obj-$(CONFIG_MACH_M4_UL) += m4/
 
 # PYRAMID
 obj-$(CONFIG_MACH_PYRAMID) += pyramid/
 
-# VISION
-obj-$(CONFIG_MACH_VISION) += vision/
-
-# M7_UL
-obj-$(CONFIG_MACH_M7_UL) += m7ul/
+# SHOOTER
+obj-$(CONFIG_MACH_SHOOTER) += shooter/

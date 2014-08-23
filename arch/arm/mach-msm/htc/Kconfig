@@ -1,7 +1,6 @@
 config MACH_HTC
 	bool
-        select FB_MSM_MIPI_DSI if !ARCH_MSM7X30
-        select FB_MSM_LCDC if ARCH_MSM7X30
+	select FB_MSM_MIPI_DSI
 
 menu "HTC Board Selection"
 source "arch/arm/mach-msm/htc/Kconfig.board"
@@ -32,20 +31,9 @@ config HTC_BATT_8960
 	default n
 	bool "HTC battery driver for MSM8960"
 
-config HTC_BATTCHG
-        depends on MSM_ONCRPCROUTER && POWER_SUPPLY
-        default n
-        bool "HTC battery / charger driver"
-
-config HTC_BATTCHG_MAX8957
-	depends on MSM_ONCRPCROUTER && POWER_SUPPLY
+config HTC_CLK_CTRL
 	default n
-	bool "HTC battery / charger driver for PMIC MAX8957"
-
-config HTC_BATTCHG_SMEM
-        depends on (HTC_BATTCHG || HTC_BATTCHG_MAX8957)
-        default n
-        bool "Read Battery Info via SMEM"
+	bool "HTC Fast/Sleep Clk Support"
 
 config HTC_HEADSET_MGR
 	tristate "HTC headset manager driver"
@@ -53,12 +41,12 @@ config HTC_HEADSET_MGR
 	help
 	  Provides support for HTC headset manager.
 
-config HTC_HEADSET_GPIO
-	tristate "HTC GPIO headset detection driver"
+config HTC_HEADSET_MISC
+	tristate "HTC MISC headset detection driver"
 	depends on HTC_HEADSET_MGR
 	default n
 	help
-	  Provides support of HTC GPIO headset detection.
+	  Provides support of HTC MISC headset detection.
 
 config HTC_HEADSET_PMIC
 	tristate "HTC PMIC headset detection driver"
@@ -74,9 +62,42 @@ config HTC_HEADSET_ONE_WIRE
 	help
 	  Provides support for HTC 1-wire headset detection.
 
-config MICROP_COMMON
-	tristate "MICROP COMMON Driver"
-	depends on I2C
+config HTC_HEADSET_GPIO
+	tristate "HTC GPIO headset detection driver"
+	depends on HTC_HEADSET_MGR
+	default n
 	help
-	  HTC Microp-P support.
+	  Provides support of HTC GPIO headset detection.
+
+config HTC_HEADSET_8X60
+	tristate "HTC 8X60 headset detection driver"
+	depends on HTC_HEADSET_MGR && ARCH_MSM8X60
+	default n
+	help
+	  Provides support of HTC 8X60 headset detection.
+
+config HTC_WAKE_ON_VOL
+	bool "Enable wake-on-volume support"
+	default y
+
+config HTC_HEADSET_GPIO
+	tristate "HTC GPIO headset detection driver"
+	depends on HTC_HEADSET_MGR
+	default n
+	help
+	  Provides support for HTC GPIO headset detection.
+
+config HTC_SIMLOCK
+	bool "Enable simlock support"
+	depends on ARCH_MSM8X60
+	default n
+
+config FORCE_FAST_CHARGE
+	bool "Force AC charge mode at will"
+	depends on ARCH_MSM8X60
+	default n
+	help
+	  A simple sysfs interface to force adapters that
+	  are detected as USB to charge as AC.
+
 endmenu

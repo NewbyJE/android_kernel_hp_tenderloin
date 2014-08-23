@@ -30,6 +30,22 @@
 #include <mach/board-ext-htc.h>
 #endif
 
+enum msm_camera_csi_data_format {
+	CSI_8BIT,
+	CSI_10BIT,
+	CSI_12BIT,
+};
+
+struct msm_camera_csi_params {
+	enum msm_camera_csi_data_format data_format;
+	uint8_t lane_cnt;
+	uint8_t lane_assign;
+	uint8_t settle_cnt;
+	uint8_t dpcm_scheme;
+	uint8_t mipi_driving_strength;/*from 0-3*/
+	uint8_t hs_impedence;
+};
+
 struct msm_camera_io_ext {
 	uint32_t mdcphy;
 	uint32_t mdcsz;
@@ -56,19 +72,6 @@ struct msm_camera_io_clk {
 struct msm_cam_expander_info {
 	struct i2c_board_info const *board_info;
 	int bus_id;
-};
-
-enum msm_camera_csi_data_format {
-	CSI_8BIT,
-	CSI_10BIT,
-	CSI_12BIT,
-};
-struct msm_camera_csi_params {
-	enum msm_camera_csi_data_format data_format;
-	uint8_t lane_cnt;
-	uint8_t lane_assign;
-	uint8_t settle_cnt;
-	uint8_t dpcm_scheme;
 };
 
 struct msm_camera_device_platform_data {
@@ -331,12 +334,13 @@ struct msm_camera_sensor_info {
 	char *eeprom_data;
 	enum msm_camera_type camera_type;
 	enum msm_sensor_type sensor_type;
-        uint16_t num_actuator_info_table;
-	struct msm_actuator_info **actuator_info_table;
 	struct msm_actuator_info *actuator_info;
 	int pmic_gpio_enable;
 	struct msm_eeprom_info *eeprom_info;
-#ifdef CONFIG_MACH_HTC
+#if defined(CONFIG_MACH_HTC) && defined(CONFIG_MSM_CAMERA)
+	struct msm_camera_csi_params csi_params;
+	uint16_t num_actuator_info_table;
+	struct msm_actuator_info **actuator_info_table;
 	struct msm_camera_gpio_conf *gpio_conf;
 	int (*camera_power_on)(void);
 	int (*camera_power_off)(void);
@@ -345,12 +349,12 @@ struct msm_camera_sensor_info {
 	int use_rawchip;
 	int hdr_mode;
 	int video_hdr_capability;
-	void(*camera_clk_switch)(void);
+	void (*camera_clk_switch)(void);
 	int power_down_disable;
 	int full_size_preview;
-	int cam_select_pin; 
+	int cam_select_pin;
 	int mirror_mode;
-	int(*camera_pm8058_power)(int);
+	int (*camera_pm8058_power)(int);
 	struct camera_flash_cfg* flash_cfg;
 	int gpio_set_value_force;
 	int dev_node;
@@ -486,6 +490,7 @@ struct msm_panel_common_pdata {
 	u32 splash_screen_addr;
 	u32 splash_screen_size;
 	char mdp_iommu_split_domain;
+	int (*mdp_gamma)(void);
 };
 
 
@@ -615,8 +620,9 @@ struct msm_i2c_platform_data {
 	int use_gsbi_shared_mode;
 	int keep_ahb_clk_on;
 	void (*msm_i2c_config_gpio)(int iface, int config_type);
+#ifdef CONFIG_MACH_HTC
 	int share_uart_flag;
-	int flow_control_uart_flag;
+#endif
 };
 
 struct msm_i2c_ssbi_platform_data {
@@ -690,25 +696,6 @@ void msm_pm_register_irqs(void);
 struct msm_usb_host_platform_data;
 int msm_add_host(unsigned int host,
 		struct msm_usb_host_platform_data *plat);
-
-#ifdef CONFIG_MSM_RMT_STORAGE_SERVER
-struct shared_ramfs_entry {
-	uint32_t client_id;   	/* Client id to uniquely identify a client */
-	uint32_t base_addr;	/* Base address of shared RAMFS memory */
-	uint32_t size;		/* Size of the shared RAMFS memory */
-	uint32_t server_status;	/* This will be initialized to 1 when
-				   remote storage RPC server is available */
-};
-struct shared_ramfs_table {
-	uint32_t magic_id;  	/* Identify RAMFS details in SMEM */
-	uint32_t version;	/* Version of shared_ramfs_table */
-	uint32_t entries;	/* Total number of valid entries   */
-	struct shared_ramfs_entry ramfs_entry[3];	/* List all entries */
-};
-
-int __init rmt_storage_add_ramfs(void);
-#endif
-
 #if defined(CONFIG_USB_FUNCTION_MSM_HSUSB) \
 	|| defined(CONFIG_USB_MSM_72K) || defined(CONFIG_USB_MSM_72K_MODULE)
 void msm_hsusb_set_vbus_state(int online);

@@ -50,7 +50,7 @@ void max8903b_set_connected_ps(unsigned connected);
 
 #define A6_DEBUG
 #define A6_PQ
-#define A6_I2C_RETRY
+//#define A6_I2C_RETRY
 
 #ifdef A6_DEBUG
 #define ASSERT(i)  BUG_ON(!(i))
@@ -69,7 +69,6 @@ static int a6_debug_mask = 0x0;
 static int a6_tp_irq_count = 0;
 static int a6_t2s_dup_correct = 0;
 static int a6_disable_dock_switch = 0;
-static int a6_simulate_error = 0;
 
 static int param_set_disable_dock_switch(const char *val, struct kernel_param *kp);
 param_check_int(disable_dock_switch, &(a6_disable_dock_switch));
@@ -78,14 +77,6 @@ module_param_call(disable_dock_switch, param_set_disable_dock_switch,
 	S_IRUGO | S_IWUSR | S_IWGRP
 	);
 __MODULE_PARM_TYPE(disable_dock_switch, int);
-
-static int param_set_simulate_error(const char *val, struct kernel_param *kp);
-param_check_int(simulate_error, &(a6_simulate_error));
-module_param_call(simulate_error, param_set_simulate_error,
-	param_get_int, &a6_simulate_error,
-	S_IRUGO | S_IWUSR | S_IWGRP
-	);
-__MODULE_PARM_TYPE(simulate_error, int);
 
 module_param_named(
 		   debug_mask, a6_debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP
@@ -4521,8 +4512,6 @@ static int a6_fish_power_get_property(struct power_supply *psy,
 {
 	unsigned connected;
 
-	if (a6_simulate_error) return -a6_simulate_error;
-
 	switch (psp) {
 	case POWER_SUPPLY_PROP_ONLINE:
 		connected = a6_calc_connected_ps();
@@ -4568,8 +4557,6 @@ static int a6_fish_battery_get_property(struct power_supply *psy,
 {
 	int temp_val = 0;
 	unsigned connected;
-
-	if (a6_simulate_error) return -a6_simulate_error;
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_STATUS:
@@ -4792,13 +4779,6 @@ static int param_set_disable_dock_switch(const char *val,
 	return 0;
 }
 
-static int param_set_simulate_error(const char *val,
-		struct kernel_param *kp)
-{
-	param_set_int(val, kp);
-	return 0;
-}
-
 static int a6_dock_probe(struct a6_device_state *state)
 {
 	int ret;
@@ -4972,7 +4952,7 @@ static int a6_i2c_probe(struct i2c_client *client, const struct i2c_device_id *d
 		goto err9;
 	}
 
-#if 1
+#if 0
 	/* register as misc device */
 	memcpy(&state->fops, &a6_fops, sizeof(struct file_operations));
 	state->mdev.minor = MISC_DYNAMIC_MINOR;
@@ -5053,12 +5033,12 @@ static int a6_i2c_probe(struct i2c_client *client, const struct i2c_device_id *d
 	return 0;
 
 err13:
-#if 1
+#if 0
 	a6_remove_dev_files(state, &client->dev);
 err12:
 	 misc_register(&state->pmem_mdev);
 err11:
-	misc_deregister(&state->mdev);
+	misc_unregister(&state->mdev);
 err10:
 #endif
 	free_irq(gpio_to_irq(plat_data->pwr_gpio), state);
@@ -5098,7 +5078,7 @@ static int a6_i2c_remove(struct i2c_client *client)
 		a6_dock_remove(state);
 	}
 
-#if 1
+#if 0
 	a6_remove_dev_files(state, &client->dev);
 #endif
 

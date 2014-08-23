@@ -373,8 +373,9 @@ static void __msm_dmov_enqueue_cmd_ext(unsigned id, struct msm_dmov_cmd *cmd)
 
 	spin_lock_irqsave(&dmov_conf[adm].list_lock, flags);
 	list_add_tail(&cmd->list, &dmov_conf[adm].staged_commands[ch]);
-	queue_work(dmov_conf[adm].cmd_wq, &cmd->work);
 	spin_unlock_irqrestore(&dmov_conf[adm].list_lock, flags);
+
+	queue_work(dmov_conf[adm].cmd_wq, &cmd->work);
 }
 
 void msm_dmov_enqueue_cmd_ext(unsigned id, struct msm_dmov_cmd *cmd)
@@ -630,7 +631,6 @@ static int msm_dmov_init_clocks(struct platform_device *pdev)
 		return -ENOENT;
 	}
 
-#ifndef CONFIG_ARCH_MSM7X30
 	dmov_conf[adm].pclk = clk_get(&pdev->dev, "iface_clk");
 	if (IS_ERR(dmov_conf[adm].pclk)) {
 		dmov_conf[adm].pclk = NULL;
@@ -646,7 +646,6 @@ static int msm_dmov_init_clocks(struct platform_device *pdev)
 		if (ret)
 			return -ENOENT;
 	}
-#endif
 
 	return 0;
 }

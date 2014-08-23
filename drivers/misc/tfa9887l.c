@@ -25,7 +25,7 @@
 #include <linux/input.h>
 #include <linux/workqueue.h>
 #include <linux/freezer.h>
-#include <mach/tfa9887.h>
+#include <linux/tfa9887.h>
 #include <linux/mutex.h>
 #include <linux/debugfs.h>
 #include <linux/gpio.h>

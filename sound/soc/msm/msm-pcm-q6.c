@@ -74,7 +74,8 @@ static struct snd_pcm_hardware msm_pcm_hardware_playback = {
 				SNDRV_PCM_INFO_MMAP_VALID |
 				SNDRV_PCM_INFO_INTERLEAVED |
 				SNDRV_PCM_INFO_PAUSE | SNDRV_PCM_INFO_RESUME),
-	.formats =              SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE,
+	.formats =              SNDRV_PCM_FMTBIT_S16_LE |
+				SNDRV_PCM_FMTBIT_S24_LE,
 	.rates =                SNDRV_PCM_RATE_8000_48000 | SNDRV_PCM_RATE_KNOT,
 	.rate_min =             8000,
 	.rate_max =             48000,
@@ -241,8 +242,8 @@ static int msm_pcm_playback_prepare(struct snd_pcm_substream *substream)
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct msm_audio *prtd = runtime->private_data;
-        short bit_width = 16;
 	int ret;
+	short bit_width = 16;
 
 	pr_debug("%s\n", __func__);
 	prtd->pcm_size = snd_pcm_lib_buffer_bytes(substream);
@@ -689,7 +690,6 @@ static int msm_pcm_hw_params(struct snd_pcm_substream *substream,
 	else
 		dir = OUT;
 
-	prtd->audio_client->perf_mode = false;
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
 		if (params_format(params) == SNDRV_PCM_FORMAT_S24_LE)
 			bit_width = 24;
@@ -698,16 +698,17 @@ static int msm_pcm_hw_params(struct snd_pcm_substream *substream,
 		if (ret < 0) {
 			pr_err("%s: q6asm_open_write_v2 failed\n", __func__);
 			q6asm_audio_client_free(prtd->audio_client);
-			kfree(prtd);
+			prtd->audio_client = NULL;
 			return -ENOMEM;
 		}
 
 		pr_debug("%s: session ID %d\n", __func__,
-			prtd->audio_client->session);
+				prtd->audio_client->session);
 		prtd->session_id = prtd->audio_client->session;
 		msm_pcm_routing_reg_phy_stream(soc_prtd->dai_link->be_id,
-			prtd->audio_client->perf_mode,
-			prtd->session_id, substream->stream);
+				prtd->audio_client->perf_mode,
+				prtd->session_id,
+				substream->stream);
 		prtd->cmd_ack = 1;
 	}
 

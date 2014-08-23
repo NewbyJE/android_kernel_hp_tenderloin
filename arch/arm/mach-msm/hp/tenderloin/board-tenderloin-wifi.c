@@ -21,11 +21,9 @@
 #include <linux/mfd/pmic8058.h>
 
 #include <linux/leds.h>
-#include <linux/leds-pm8058.h>
 #include <linux/clk.h>
 #include <linux/pmic8058-othc.h>
 #include <linux/mfd/pmic8901.h>
-#include <linux/htc_flashlight.h>
 #include <linux/regulator/pmic8901-regulator.h>
 #include <linux/regulator/fixed.h>
 #include <linux/bootmem.h>
@@ -74,14 +72,12 @@
 
 #ifdef CONFIG_BT
 #include <mach/msm_serial_hs.h>
-#include <mach/htc_bdaddress.h>
 #endif
 
 #include <mach/msm_serial_hs_lite.h>
 #include <mach/msm_iomap.h>
 #include <mach/msm_memtypes.h>
 #include <asm/mach/mmc.h>
-#include <mach/htc_battery_8x60.h>
 #ifdef CONFIG_TPS65200
 #include <linux/tps65200.h>
 #endif
@@ -99,7 +95,6 @@
 #include <linux/usb/android.h>
 #include <mach/usbdiag.h>
 #endif
-#include <linux/tpa2051d3.h>
 #include <linux/regulator/consumer.h>
 #include <linux/regulator/machine.h>
 #include <mach/sdio_al.h>
@@ -144,7 +139,6 @@
 #include "rpm_resources.h"
 #include "pm-boot.h"
 //#include "board-storage-common-a.h"
-#include <mach/board_htc.h>
 #include "acpuclock.h"
 
 #include <linux/msm_ion.h>

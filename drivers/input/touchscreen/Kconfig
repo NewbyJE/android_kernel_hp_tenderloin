@@ -1008,8 +1008,6 @@ config TOUCHSCREEN_SYNAPTICS_DSX_FW_UPDATE
 	  To compile this driver as a module, choose M here: the
 	  module will be called synaptics_dsx_fw_update.
 
-endif
-
 config TOUCHSCREEN_ATMEL
 	tristate "Atmel i2c touchscreen"
 	depends on I2C
@@ -1017,10 +1015,10 @@ config TOUCHSCREEN_ATMEL
 	  This enables support for Atmel over I2C based touchscreens.
 
 config TOUCHSCREEN_ATMEL_224E
-	tristate "Atmel i2c touchscreen"
+	tristate "Atmel 224E i2c touchscreen"
 	depends on I2C
 	help
-	  This enables support for Atmel over I2C based touchscreens.
+	  This enables support for Atmel 224E over I2C based touchscreens.
 
 config TOUCHSCREEN_CYPRESS_TMA
         tristate "Cypress TMA300 based touchscreens"
@@ -1049,3 +1047,5 @@ config TOUCHSCREEN_CY8CTMA395
 
 	To comile this driver as a module, choose M here: the module
 	will be called cy8ctma395
+
+endif

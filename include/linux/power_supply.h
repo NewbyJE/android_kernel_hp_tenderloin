@@ -47,6 +47,7 @@ enum {
 	POWER_SUPPLY_CHARGE_TYPE_FAST,
 };
 
+#ifdef CONFIG_MACH_HTC
 enum {
 	POWER_SUPPLY_DISABLE_CHARGE = 0,
 	POWER_SUPPLY_ENABLE_SLOW_CHARGE,
@@ -57,6 +58,7 @@ enum {
 	POWER_SUPPLY_ENABLE_FAST_HV_CHARGE,
 	POWER_SUPPLY_ENABLE_INTERNAL,
 };
+#endif
 
 enum {
 	POWER_SUPPLY_HEALTH_UNKNOWN = 0,
@@ -92,6 +94,15 @@ enum {
 	POWER_SUPPLY_SCOPE_SYSTEM,
 	POWER_SUPPLY_SCOPE_DEVICE,
 };
+
+#ifdef CONFIG_MACH_HTC
+enum {
+	HTC_UI_PJ_NOT_CHG = 0,
+	HTC_UI_PJ_CHG,
+	HTC_UI_PJ_FULL,
+	HTC_UI_PJ_EMPTY,
+};
+#endif
 
 enum power_supply_property {
 	/* Properties of type `int' */
@@ -140,7 +151,7 @@ enum power_supply_property {
 	POWER_SUPPLY_PROP_MODEL_NAME,
 	POWER_SUPPLY_PROP_MANUFACTURER,
 	POWER_SUPPLY_PROP_SERIAL_NUMBER,
-#ifdef CONFIG_HTC_BATT_CORE
+#ifdef CONFIG_MACH_HTC
 	POWER_SUPPLY_PROP_OVERLOAD,
 #endif
 };
@@ -151,7 +162,7 @@ enum power_supply_type {
 	POWER_SUPPLY_TYPE_UPS,
 	POWER_SUPPLY_TYPE_MAINS,
 	POWER_SUPPLY_TYPE_USB,		/* Standard Downstream Port */
-#if defined(CONFIG_HTC_BATT_CORE) || defined(CONFIG_HTC_BATTCHG)
+#ifdef CONFIG_MACH_HTC
 	POWER_SUPPLY_TYPE_WIRELESS,	/* Wireless Charger */
 #endif
 	POWER_SUPPLY_TYPE_USB_DCP,	/* Dedicated Charging Port */

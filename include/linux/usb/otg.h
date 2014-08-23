@@ -85,10 +85,6 @@ struct usb_phy;
 struct usb_phy_io_ops {
 	int (*read)(struct usb_phy *x, u32 reg);
 	int (*write)(struct usb_phy *x, u32 val, u32 reg);
-#ifdef CONFIG_USB_MULTIPLE_CHARGER_DETECT
-	int (*read_with_reset)(struct usb_phy *x, u32 reg);
-	int (*write_with_reset)(struct usb_phy *x, u32 val, u32 reg);
-#endif
 };
 
 struct usb_otg {
@@ -165,8 +161,6 @@ struct usb_phy {
 			enum usb_otg_event event);
 
 	void	(*notify_usb_attached)(void);
-
-	void	(*notify_charger)(int connect_type);
 #endif
 };
 

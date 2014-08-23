@@ -335,22 +335,23 @@ static struct msm_bus_scale_pdata mdp_bus_scale_pdata = {
 	.name = "mdp",
 };
 #endif
-#define MDP_VSYNC_GPIO			2
+#define MDP_VSYNC_GPIO			28
 
 static struct msm_panel_common_pdata mdp_pdata = {
-	.gpio = MDP_VSYNC_GPIO,
-	.mdp_max_clk = 200000000,
+  //        .gpio = MDP_VSYNC_GPIO,
+        .gpio = 2,
+        .mdp_max_clk = 200000000,
 #ifdef CONFIG_MSM_BUS_SCALING
 	.mdp_bus_scale_table = &mdp_bus_scale_pdata,
 #endif
 	.mdp_rev = MDP_REV_41,
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
-	.mem_hid = BIT(ION_CP_MM_HEAP_ID),
+        .mem_hid = BIT(ION_CP_MM_HEAP_ID),
 #else
 	.mem_hid = MEMTYPE_EBI1,
 #endif
 	.cont_splash_enabled = 0x01,
-	.mdp_iommu_split_domain = 0,
+        .mdp_iommu_split_domain = 0,
 };
 
 void __init msm8x60_mdp_writeback(struct memtype_reserve* reserve_table)
@@ -364,6 +365,7 @@ void __init msm8x60_mdp_writeback(struct memtype_reserve* reserve_table)
 		mdp_pdata.ov1_wb_size;
 #endif
 }
+
 
 static int lcd_panel_gpios[] = {
 	0, /* lcdc_pclk */
@@ -455,8 +457,7 @@ static int lcdc_panel_power(int on)
                     pr_err("[DISP] %s: unable to get 8901_l4\n", __func__);
                     return -ENODEV;
                   }
-              }
-
+              }              
             /* VDD_LVDS_3.3V ENABLE*/
             rc = regulator_set_voltage(votg_l10, 3050000, 3050000);
             if(rc) 
@@ -527,7 +528,6 @@ static int lcdc_panel_power(int on)
             gpio_set_value(GPIO_LVDS_SHDN_N, 1);
             msleep(200);
             gpio_set_value_cansleep(GPIO_BACKLIGHT_EN, 1);
-
             mdelay(20);
             bPanelPowerOn = true;
           }
@@ -553,12 +553,11 @@ static int lcdc_panel_power(int on)
               }
             
             gpio_set_value_cansleep(GPIO_BACKLIGHT_EN, 0);
-
+            
             // msleep(200);
             gpio_set_value(GPIO_LVDS_SHDN_N, 0);
             gpio_set_value(GPIO_LCD_PWR_EN, 0);
             // msleep(400);
-
             bPanelPowerOn = false;
           }
 
@@ -620,7 +619,7 @@ static int lcdc_panel_power(int on)
 
 	return rc;
 #endif
-	return 0;
+        return 0;
 }
 
 static struct lcdc_platform_data lcdc_pdata = {
@@ -696,13 +695,13 @@ void __init tenderloin_init_fb(void)
 {
 	msm8x60_set_display_params("lcdc_tenderloin", "hdmi_msm");
 	platform_device_register(&msm_fb_device);
-	msm_fb_register_device("mdp", &mdp_pdata);
 	platform_device_register(&lcdc_tenderloin_panel_device);
+	msm_fb_register_device("mdp", &mdp_pdata);
 	msm_fb_register_device("lcdc", &lcdc_pdata);
-	//msm_fb_register_device("mipi_dsi", 0);
+        //	msm_fb_register_device("mipi_dsi", 0);
 #ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
-	//platform_device_register(&hdmi_msm_device);
+        //	platform_device_register(&hdmi_msm_device);
 #endif
-	msm_fb_register_device("dtv", &dtv_pdata);
+        msm_fb_register_device("dtv", &dtv_pdata);
 }
 

@@ -151,13 +151,13 @@ static struct mfd_cell wm8994_devs[] = {
 		.pm_runtime_no_callbacks = true,
 	},
 };
-#ifndef CONFIG_MACH_TENDERLOIN
 
 /*
  * Supplies for the main bulk of CODEC; the LDO supplies are ignored
  * and should be handled via the standard regulator API supply
  * management.
  */
+#ifndef CONFIG_MACH_TENDERLOIN
 static const char *wm1811_main_supplies[] = {
 	"DBVDD1",
 	"DBVDD2",
@@ -291,7 +291,7 @@ static int wm8994_suspend(struct device *dev)
 
 	wm8994->suspended = true;
 
-	if ((pdata)&&(pdata->wm8994_setup))
+	if (pdata && pdata->wm8994_shutdown)
 		pdata->wm8994_shutdown();
 
 #ifndef CONFIG_MACH_TENDERLOIN
@@ -315,17 +315,18 @@ static int wm8994_resume(struct device *dev)
 	if (!wm8994->suspended)
 		return 0;
 
-	if ((pdata)&&(pdata->wm8994_setup))
-		pdata->wm8994_setup();
 #ifndef CONFIG_MACH_TENDERLOIN
 	ret = regulator_bulk_enable(wm8994->num_supplies,
 				    wm8994->supplies);
 	if (ret != 0) {
 		dev_err(dev, "Failed to enable supplies: %d\n", ret);
 		return ret;
-
 	}
 #endif
+
+	if (pdata && pdata->wm8994_setup)
+		pdata->wm8994_setup();
+
 	regcache_cache_only(wm8994->regmap, false);
 	ret = regcache_sync(wm8994->regmap);
 	if (ret != 0) {
@@ -346,6 +347,7 @@ err_enable:
 #ifndef CONFIG_MACH_TENDERLOIN
 	regulator_bulk_disable(wm8994->num_supplies, wm8994->supplies);
 #endif
+
 	return ret;
 }
 #endif
@@ -403,8 +405,7 @@ static __devinit int wm8994_device_init(struct wm8994 *wm8994, int irq)
 	struct regmap_config *regmap_config;
 	const struct reg_default *regmap_patch = NULL;
 	const char *devname;
-	int ret, i;
-        int patch_regs = 0;
+	int ret, i, patch_regs = 0;
 	int pulls = 0;
 
 	dev_set_drvdata(wm8994->dev, wm8994);
@@ -419,8 +420,7 @@ static __devinit int wm8994_device_init(struct wm8994 *wm8994, int irq)
 		goto err;
 	}
 
-
-    if ((pdata)&&(pdata->wm8994_setup))
+	if (pdata && pdata->wm8994_setup)
 		pdata->wm8994_setup();
 
 #ifndef CONFIG_MACH_TENDERLOIN
@@ -665,8 +665,9 @@ static __devinit int wm8994_device_init(struct wm8994 *wm8994, int irq)
 err_irq:
 	wm8994_irq_exit(wm8994);
 err_enable:
-	if ((pdata)&&(pdata->wm8994_shutdown))
+	if (pdata && pdata->wm8994_shutdown)
 		pdata->wm8994_shutdown();
+
 #ifndef CONFIG_MACH_TENDERLOIN
 	regulator_bulk_disable(wm8994->num_supplies,
 			       wm8994->supplies);
@@ -686,8 +687,9 @@ static __devexit void wm8994_device_exit(struct wm8994 *wm8994)
 	mfd_remove_devices(wm8994->dev);
 	wm8994_irq_exit(wm8994);
 
-	if ((pdata)&&(pdata->wm8994_shutdown))
+	if (pdata && pdata->wm8994_shutdown)
 		pdata->wm8994_shutdown();
+
 #ifndef CONFIG_MACH_TENDERLOIN
 	regulator_bulk_disable(wm8994->num_supplies,
 			       wm8994->supplies);

@@ -26,8 +26,13 @@
 #include <linux/proc_fs.h>
 #include <linux/module.h>
 #include <media/v4l2-dev.h>
+#ifdef CONFIG_MACH_TENDERLOIN
+#include <media/msm_camera-tenderloin.h>
+#include <mach/camera-tenderloin.h>
+#else
 #include <media/msm_camera.h>
 #include <mach/camera.h>
+#endif
 #include <media/v4l2-ioctl.h>
 /*#include <linux/platform_device.h>*/
 

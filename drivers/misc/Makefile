@@ -70,31 +70,26 @@ obj-$(CONFIG_PMIC8XXX_UPL) += pm8xxx-upl.o
 obj-$(CONFIG_ANDROID_VIBRATOR)	+= android_vibrator.o
 obj-$(CONFIG_MSM_MEMORY_LOW_POWER_MODE_SUSPEND_DEEP_POWER_DOWN) \
 	+= msm_migrate_pages.o
+ifeq ($(CONFIG_MACH_HTC),y)
+obj-$(CONFIG_PMIC8058_XOADC) += pmic8058-xoadc-htc.o
+else
 obj-$(CONFIG_PMIC8058_XOADC) += pmic8058-xoadc.o
+endif
 obj-$(CONFIG_QSEECOM) += qseecom.o
 obj-$(CONFIG_QFP_FUSE) += qfp_fuse.o
 obj-y += tspdrv/
 obj-$(CONFIG_BU52031NVX) += pm8xxx-cradle.o
 obj-$(CONFIG_SLIMPORT_ANX7808)	+= slimport_anx7808/
-ifeq ($(CONFIG_ARCH_MSM8X60),y)
-obj-$(CONFIG_CABLE_DETECT_8XXX)	+= cable_detect_8x60.o
-else
 obj-$(CONFIG_CABLE_DETECT_8XXX)	+= cable_detect_8xxx.o
-endif
 obj-$(CONFIG_VP_A1028)		+= a1028.o
 obj-$(CONFIG_SENSORS_NFC_PN544)	+= pn544.o
 obj-$(CONFIG_AMP_TFA9887)	+= tfa9887.o
-obj-$(CONFIG_AMP_RT5501)        += rt5501.o
-obj-$(CONFIG_INPUT_ISL29028)	+= isl29028.o
-obj-$(CONFIG_INPUT_ISL29029)	+= isl29029.o
-obj-$(CONFIG_KERNEL_LOG)	+= klog.o
-obj-$(CONFIG_HSUART)		+= hsuart.o hsuart_tty.o
+obj-$(CONFIG_AMP_TFA9887L)	+= tfa9887l.o
+obj-$(CONFIG_AMP_RT5501)	+= rt5501.o
+obj-$(CONFIG_A6)		+= a6/
+obj-$(CONFIG_HRES_COUNTER)	+= hres_counter.o
 obj-$(CONFIG_NDUID)		+= nduid.o
 obj-$(CONFIG_USER_PINS)		+= user-pins.o
-obj-$(CONFIG_HRES_COUNTER)	+= hres_counter.o
-obj-$(CONFIG_A6)		+= a6/
+obj-$(CONFIG_KERNEL_LOG)	+= klog.o
+obj-$(CONFIG_HSUART)		+= hsuart.o hsuart_tty.o
 obj-$(CONFIG_MDMGPIO)		+= mdmgpio.o
-obj-$(CONFIG_AMP_TPA6185)       += tpa6185.o
-obj-$(CONFIG_AMP_TFA9887)	+= tfa9887.o
-obj-$(CONFIG_AMP_RT5501)        += rt5501.o
-obj-$(CONFIG_AMP_TFA9887L)	+= tfa9887l.o

@@ -205,7 +205,6 @@ struct dsi_buf {
 };
 
 /* dcs read/write */
-#define DTYPE_VSYNC_START	0x01	/* short write, 0 parameter */
 #define DTYPE_DCS_WRITE		0x05	/* short write, 0 parameter */
 #define DTYPE_DCS_WRITE1	0x15	/* short write, 1 parameter */
 #define DTYPE_DCS_READ		0x06	/* read */
@@ -350,27 +349,23 @@ static inline void mipi_dsi_clk_enable(void)
 {
 	/* empty */
 }
-static inline void mipi_dsi_clk_disable(void)
+void mipi_dsi_clk_disable(void)
 {
 	/* empty */
 }
-static inline void mipi_dsi_unprepare_clocks(void)
+void mipi_dsi_prepare_clocks(void)
 {
 	/* empty */
 }
-static inline void mipi_dsi_prepare_ahb_clocks(void)
+void mipi_dsi_unprepare_clocks(void)
 {
 	/* empty */
 }
-static inline void mipi_dsi_unprepare_ahb_clocks(void)
+void mipi_dsi_ahb_ctrl(u32 enable)
 {
 	/* empty */
 }
-static inline void mipi_dsi_ahb_ctrl(u32 enable)
-{
-	/* empty */
-}
-static inline void mipi_dsi_phy_ctrl(int on)
+void mipi_dsi_phy_ctrl(int on)
 {
 	/* empty */
 }

@@ -83,7 +83,6 @@ struct cable_detect_platform_data {
 	bool dock_detect;
 	int dock_pin_gpio;
 #endif
-	int idpin_irq;
 	int enable_vbus_usb_switch;
 };
 

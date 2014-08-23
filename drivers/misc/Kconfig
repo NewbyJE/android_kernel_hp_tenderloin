@@ -715,40 +715,34 @@ config SENSORS_NFC_PN544
 	help
 	  PN544 NFC driver.
 
-config AMP_RT5501
-        tristate "TI RT5501 AMP Driver"
-	depends on I2C=y
-        help
-          TI RT5501 AMP Driver implemented by HTC.
-
 config AMP_TFA9887
-        tristate "NXP TFA9887 Speaker AMP Driver"
+	tristate "NXP TFA9887 Speaker AMP Driver"
 	depends on I2C=y
-        help
-         NXP TFA9887 Speaker AMP Driver implemented by HTC.
-
-config INPUT_ISL29028
-	tristate "ISL29028 proximity and light sensor"
 	help
-	  Say Y here to enable the ISL29028 Short Distance Proximity
-	  Sensor with Ambient Light Sensor.
+	  NXP TFA9887 Speaker AMP Driver implemented by HTC.
 
-config INPUT_ISL29029
-	tristate "ISL29029 proximity and light sensor"
+config AMP_TFA9887L
+	tristate "NXP TFA9887 (L) Speaker AMP Driver"
+	depends on I2C=y
 	help
-	 Say Y here to enable the ISL29029 Short Distance Proximity
-	 Sensor with Ambient Light Sensor.
+	  NXP TFA9887 Speaker AMP Driver implemented by HTC.
 
-config KERNEL_LOG
-	bool "Kernel ram log"
-	---help---
-		Select Y for support for keeping kernel logs in physical memory
+config AMP_RT5501
+	tristate "TI RT5501 AMP Driver"
+	depends on I2C=y
+	help
+	  RichTek RT5501 AMP Driver implemented by HTC.
 
-config HSUART
-	bool "High Speed UART engine"
-	default n
+config AMP_RT5501_DELAY
+	tristate "RichTek RT5501 AMP Delay Workaround"
+	depends on I2C=y
+	help
+	  RichTek RT5501 AMP Delay Workaround for pop noise of headset enable.
+
+config HRES_COUNTER
+	tristate "High resolution counter"
 	---help---
-	  Generic HSUART engine, which calls platform specific code to facilitate High speed UART driver".
+	  Select Y if you want to enable High resolution counter.
 
 config NDUID
 	bool "Nova Device ID"
@@ -761,10 +755,16 @@ config USER_PINS
 	---help---
 		Select Y if you want to expose some gpio pins through sysfs.
 
-config HRES_COUNTER
-	tristate "High resolution counter"
+config KERNEL_LOG
+	bool "Kernel ram log"
 	---help---
-	  Select Y if you want to enable High resolution counter.
+		Select Y for support for keeping kernel logs in physical memory
+
+config HSUART
+	bool "High Speed UART engine"
+	default n
+	---help---
+	  Generic HSUART engine, which calls platform specific code to facilitate High speed UART driver".
 
 config MDMGPIO
 	tristate "modem gpio control"
@@ -775,36 +775,6 @@ config MDMGPIO
 
 	  This driver can also be built as a module, choose M here: the
 	  module will be called mdmgpio.
-
-config AMP_TPA6185
-        tristate "TI TPA6185 AMP Driver"
-	depends on I2C=y
-        help
-          TI TPA6185 AMP Driver implemented by HTC.
-
-config AMP_RT5501
-        tristate "TI RT5501 AMP Driver"
-	depends on I2C=y
-        help
-          RichTek RT5501 AMP Driver implemented by HTC.
-
-config AMP_RT5501_DELAY
-        tristate "RichTek RT5501 AMP Delay Workaround"
-	depends on I2C=y
-        help
-          RichTek RT5501 AMP Delay Workaround for pop noise of headset enable.
-
-config AMP_TFA9887
-        tristate "NXP TFA9887 Speaker AMP Driver"
-	depends on I2C=y
-        help
-         NXP TFA9887 Speaker AMP Driver implemented by HTC.
-
-config AMP_TFA9887L
-        tristate "NXP TFA9887L Speaker AMP Driver"
-	depends on I2C=y
-        help
-         NXP TFA9887L Speaker AMP Driver implemented by HTC.
 
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"

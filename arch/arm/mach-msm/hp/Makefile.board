@@ -4,4 +4,3 @@
 
 # TENDERLOIN
 obj-$(CONFIG_MACH_TENDERLOIN) += tenderloin/
-
