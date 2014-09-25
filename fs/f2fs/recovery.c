@@ -62,8 +62,10 @@ static int recover_dentry(struct page *ipage, struct inode *inode)
 	}
 retry:
 	de = f2fs_find_entry(dir, &name, &page);
-	if (de && inode->i_ino == le32_to_cpu(de->ino))
+	if (de && inode->i_ino == le32_to_cpu(de->ino)) {
+		clear_inode_flag(F2FS_I(inode), FI_INC_LINK);
 		goto out_unmap_put;
+	}
 	if (de) {
 		einode = f2fs_iget(inode->i_sb, le32_to_cpu(de->ino));
 		if (IS_ERR(einode)) {
@@ -300,14 +302,19 @@ static int do_recover_data(struct f2fs_sb_info *sbi, struct inode *inode,
 	struct node_info ni;
 	int err = 0, recovered = 0;
 
-	recover_inline_xattr(inode, page);
+	/* step 1: recover xattr */
+	if (IS_INODE(page)) {
+		recover_inline_xattr(inode, page);
+	} else if (f2fs_has_xattr_block(ofs_of_node(page))) {
+		recover_xattr_data(inode, page, blkaddr);
+		goto out;
+	}
 
+	/* step 2: recover inline data */
 	if (recover_inline_data(inode, page))
 		goto out;
 
-	if (recover_xattr_data(inode, page, blkaddr))
-		goto out;
-
+	/* step 3: recover data indices */
 	start = start_bidx_of_node(ofs_of_node(page), fi);
 	end = start + ADDRS_PER_PAGE(page, fi);
 
@@ -364,8 +371,6 @@ static int do_recover_data(struct f2fs_sb_info *sbi, struct inode *inode,
 	fill_node_footer(dn.node_page, dn.nid, ni.ino,
 					ofs_of_node(page), false);
 	set_page_dirty(dn.node_page);
-
-	recover_node_page(sbi, dn.node_page, &sum, &ni, blkaddr);
 err:
 	f2fs_put_dnode(&dn);
 	f2fs_unlock_op(sbi);
@@ -436,9 +441,7 @@ next:
 
 int recover_fsync_data(struct f2fs_sb_info *sbi)
 {
-	struct curseg_info *curseg = CURSEG_I(sbi, CURSEG_WARM_NODE);
 	struct list_head inode_list;
-	block_t blkaddr;
 	int err;
 	bool need_writecp = false;
 
@@ -451,9 +454,6 @@ int recover_fsync_data(struct f2fs_sb_info *sbi)
 
 	/* step #1: find fsynced inode numbers */
 	sbi->por_doing = true;
-
-	blkaddr = NEXT_FREE_BLKADDR(sbi, curseg);
-
 	err = find_fsync_dnodes(sbi, &inode_list);
 	if (err)
 		goto out;
@@ -465,25 +465,13 @@ int recover_fsync_data(struct f2fs_sb_info *sbi)
 
 	/* step #2: recover data */
 	err = recover_data(sbi, &inode_list, CURSEG_WARM_NODE);
-	f2fs_bug_on(!list_empty(&inode_list));
+	if (!err)
+		f2fs_bug_on(!list_empty(&inode_list));
 out:
 	destroy_fsync_dnodes(&inode_list);
 	kmem_cache_destroy(fsync_entry_slab);
-
-	if (err) {
-		truncate_inode_pages(NODE_MAPPING(sbi), 0);
-		truncate_inode_pages(META_MAPPING(sbi), 0);
-	}
-
 	sbi->por_doing = false;
-	if (err) {
-		discard_next_dnode(sbi, blkaddr);
-
-		/* Flush all the NAT/SIT pages */
-		while (get_pages(sbi, F2FS_DIRTY_META))
-			sync_meta_pages(sbi, META, LONG_MAX);
-	} else if (need_writecp) {
+	if (!err && need_writecp)
 		write_checkpoint(sbi, false);
-	}
 	return err;
 }
