@@ -17,37 +17,27 @@
 
 #include <linux/delay.h>
 #include <linux/pwm.h>
+
 #ifdef CONFIG_PMIC8058_PWM
 #include <linux/mfd/pmic8058.h>
 #include <linux/pmic8058-pwm.h>
 #endif
+
 #include <mach/gpio.h>
 #include "../../../../drivers/video/msm/msm_fb.h"
 #include "lcdc_tenderloin.h"
 
 #ifdef CONFIG_PMIC8058_PWM
 static struct pwm_device *bl_pwm0;
-
-/**
- * TPS61187's max PWM freq allowance is 22Khz.
- * If PWM_LEVEL is greater than 64 and If we use PMIC8058-PWM,
- * PMIC must be in 9bit modulation mode.
- */
-#define PWM_FREQ_HZ 20000
-#define PWM_PERIOD_USEC (USEC_PER_SEC / PWM_FREQ_HZ)
-#define PWM_LEVEL 256
-#define PWM_DUTY_LEVEL (PWM_PERIOD_USEC / PWM_LEVEL)
-#define PWM_LEVEL_MIN 3		// prevent pwm level 3 and under to prevent cut-out
 #endif
 
 static struct msm_panel_common_pdata *lcdc_tenderloin_pdata;
-
 
 static void lcdc_tenderloin_panel_set_backlight(struct msm_fb_data_type *mfd);
 
 static int lcdc_tenderloin_panel_on(struct platform_device *pdev)
 {
-        return 0;
+	return 0;
 }
 
 static int lcdc_tenderloin_panel_off(struct platform_device *pdev)
@@ -66,17 +56,14 @@ static void lcdc_tenderloin_panel_set_backlight(struct msm_fb_data_type *mfd)
 
 	bl_level = mfd->bl_level;
 
-        printk(KERN_ERR "[DISP] %s: %d\n", __func__, bl_level);
-#ifdef CONFIG_PMIC8058_PWM
-	if (bl_pwm0) 
-          {
-            ret = pwm_config2(bl_pwm0, bl_level, PWM_LEVEL, PWM_PERIOD_USEC);
-            if (ret)
-              printk(KERN_ERR "pwm_config on pwm 0 failed %d\n", ret);
+	printk(KERN_ERR "[DISP] %s: %d\n", __func__, bl_level);
 
-            ret = pwm_enable(bl_pwm0);
-            if (ret)
-                  printk(KERN_ERR "pwm_enable on pwm 0 failed %d\n", ret);
+#ifdef CONFIG_PMIC8058_PWM
+	if (bl_pwm0) {
+		ret = pwm_config2(bl_pwm0, bl_level, PWM_LEVEL, PWM_PERIOD_USEC);
+		if (ret) printk(KERN_ERR "pwm_config on pwm 0 failed %d\n", ret);
+		ret = pwm_enable(bl_pwm0);
+		if (ret) printk(KERN_ERR "pwm_enable on pwm 0 failed %d\n", ret);
 	}
 #endif
 
@@ -88,21 +75,19 @@ static int pmic_backlight_gpio[2]
 static int __devinit lcdc_tenderloin_probe(struct platform_device *pdev)
 {
 	if (pdev->id == 0) {
-                lcdc_tenderloin_pdata = pdev->dev.platform_data;
-		return 0;
+		lcdc_tenderloin_pdata = pdev->dev.platform_data;
+		Return 0;
 	}
-
-        printk(KERN_ERR "%s: ++\n", __func__);
+	printk(KERN_ERR "%s: ++\n", __func__);
 
 #ifdef CONFIG_PMIC8058_PWM
 	bl_pwm0 = pwm_request(pmic_backlight_gpio[0], "backlight");
-	if (bl_pwm0 == NULL || IS_ERR(bl_pwm0)) 
-          {
-            pr_err("%s pwm_request() failed\n", __func__);
-            bl_pwm0 = NULL;
-          }
+	if (bl_pwm0 == NULL || IS_ERR(bl_pwm0)) {
+		pr_err("%s pwm_request() failed\n", __func__);
+		bl_pwm0 = NULL;
+	}
 
-	printk(KERN_INFO "Lcdc_tenderloin_probe: bl_pwm0=%p LPG_chan0=%d\n",
+	Printk(KERN_INFO "Lcdc_tenderloin_probe: bl_pwm0=%p LPG_chan0=%d\n",
                bl_pwm0, (int)pmic_backlight_gpio[0]);
 #endif
 
@@ -119,8 +104,8 @@ static struct platform_driver this_driver = {
 };
 
 static struct msm_fb_panel_data tenderloin_panel_data = {    
- 	.on = lcdc_tenderloin_panel_on,
- 	.off = lcdc_tenderloin_panel_off,   
+	.on = lcdc_tenderloin_panel_on,
+	.off = lcdc_tenderloin_panel_off,   
 	.set_backlight = lcdc_tenderloin_panel_set_backlight,
 };
 
@@ -134,29 +119,26 @@ int lcdc_tenderloin_device_register(struct msm_panel_info *pinfo)
 	int ret;
 
 	ret = lcdc_tenderloin_lcd_init();
-	if (ret) {
+	if (ret) { 
 		pr_err("lcdc_tenderloin_lcd_init() failed with ret %u\n", ret);
 		return ret;
 	}
 
 	pdev = platform_device_alloc("lcdc_tenderloin", ++lcdc_dev_id);
-	if (!pdev)
-		return -ENOMEM;
+	if (!pdev) return -ENOMEM;
 
 	tenderloin_panel_data.panel_info = *pinfo;
 
 	ret = platform_device_add_data(pdev, &tenderloin_panel_data,
 		sizeof(tenderloin_panel_data));
 	if (ret) {
-		printk(KERN_ERR
-		  "%s: platform_device_add_data failed!\n", __func__);
+		printk(KERN_ERR "%s: platform_device_add_data failed!\n", __func__);
 		goto err_device_put;
 	}
 
 	ret = platform_device_add(pdev);
 	if (ret) {
-		printk(KERN_ERR
-		  "%s: platform_device_register failed!\n", __func__);
+		printk(KERN_ERR "%s: platform_device_register failed!\n", __func__);
 		goto err_device_put;
 	}
 
