@@ -37,6 +37,7 @@ static struct pwm_device *bl_pwm0;
 #define PWM_PERIOD_USEC (USEC_PER_SEC / PWM_FREQ_HZ)
 #define PWM_LEVEL 256
 #define PWM_DUTY_LEVEL (PWM_PERIOD_USEC / PWM_LEVEL)
+#define PWM_LEVEL_MIN 3		// prevent pwm level 3 and under to prevent cut-out
 #endif
 
 static struct msm_panel_common_pdata *lcdc_tenderloin_pdata;
