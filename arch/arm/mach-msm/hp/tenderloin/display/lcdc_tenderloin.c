@@ -76,7 +76,7 @@ static int __devinit lcdc_tenderloin_probe(struct platform_device *pdev)
 {
 	if (pdev->id == 0) {
 		lcdc_tenderloin_pdata = pdev->dev.platform_data;
-		Return 0;
+		return 0;
 	}
 	printk(KERN_ERR "%s: ++\n", __func__);
 
@@ -87,7 +87,7 @@ static int __devinit lcdc_tenderloin_probe(struct platform_device *pdev)
 		bl_pwm0 = NULL;
 	}
 
-	Printk(KERN_INFO "Lcdc_tenderloin_probe: bl_pwm0=%p LPG_chan0=%d\n",
+	printk(KERN_INFO "Lcdc_tenderloin_probe: bl_pwm0=%p LPG_chan0=%d\n",
                bl_pwm0, (int)pmic_backlight_gpio[0]);
 #endif
 
